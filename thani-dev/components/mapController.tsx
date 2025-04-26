@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Dimensions, ActivityIndicator, View, Text, Image, ScrollView } from 'react-native';
 import MapView, { PROVIDER_DEFAULT, Marker, UrlTile } from 'react-native-maps';
 import axios from 'axios';
+import { useRouter } from 'expo-router'; 
 
 export default function MapController() {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [places, setPlaces] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     fetchNearbyPlaces();
@@ -92,10 +94,29 @@ export default function MapController() {
           <Text style={styles.placeTitle}>{selectedPlace.name}</Text>
           <Text style={styles.placeAddress}>{selectedPlace.vicinity}</Text>
 
-          {/* Add this Close Button */}
+          <View style={styles.buttonRow}>
           <Text style={styles.closeButton} onPress={() => setSelectedPlace(null)}>
             Close
           </Text>
+          <Text
+            style={styles.moreDetailsButton}
+            onPress={() => {
+              router.push({
+                pathname: 'placeDetailsController',
+                params: {
+                  placeName: selectedPlace.name,
+                  address: selectedPlace.vicinity,
+                  rating: selectedPlace.rating,
+                  placeId: selectedPlace.place_id,
+                  types: selectedPlace.types ? selectedPlace.types.join(', ') : '',
+                },
+              });
+            }}
+          >
+            More Details
+          </Text>
+        </View>
+
         </ScrollView>
       </View>
     )}
@@ -154,9 +175,17 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   closeButton: {
-    marginTop: 10,
     color: 'blue',
     fontWeight: 'bold',
-    textAlign: 'center',
   },  
+  moreDetailsButton: {
+    color: 'blue',
+    fontWeight: 'bold',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    marginBottom: 0,
+  },    
 });
