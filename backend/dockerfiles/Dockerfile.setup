@@ -1,0 +1,8 @@
+# Dockerfile.setup
+FROM postgres:latest
+#install postgresql client
+RUN apt-get update && apt-get install -y postgresql-client
+# copy over dockerinit files:
+COPY ../docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d
+# this auto runs ^
+
