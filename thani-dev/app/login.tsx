@@ -1,19 +1,56 @@
-import { Link, Stack } from 'expo-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebaseconfig';
-import { StyleSheet } from 'react-native';
+import { Link, Redirect, Stack } from 'expo-router';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebaseconfig';
+import { useRouter } from 'expo-router';
+import { StyleSheet, TextInput, Button} from 'react-native';
 
 import { Text, View } from '@/components/Themed';
+import { useState } from 'react';
 
 export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPass] = useState('');
+  const router = useRouter();
+
+  async function handleLogin() {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/home")
+      console.log("logged in!")
+
+    } catch (error: unknown){
+      if(error instanceof Error && error.message.includes('auth/user-not-found')) {
+        try{
+          await createUserWithEmailAndPassword(auth, email, password);
+
+        } catch(createError: unknown) {
+          console.error(createError)
+
+        }
+      }else{
+        console.error(error);
+      }
+    }
+  }
 
   return (
-    <>
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
+        <TextInput 
+          style={styles.input}
+          onChangeText={setEmail}
+          placeholder='example@du.edu'
+          value={email}>
+        </TextInput>
+        <TextInput 
+          style={styles.input}
+          onChangeText={setPass}
+          value={password}
+          placeholder='password'>
+        </TextInput>
+        <Button title='Login/Sign Up' onPress={handleLogin} />
 
       </View>
-    </>
   );
 }
 
@@ -31,6 +68,11 @@ const styles = StyleSheet.create({
   link: {
     marginTop: 15,
     paddingVertical: 15,
+  },
+  input: {
+    borderBottomWidth: 1.5,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
   },
   linkText: {
     fontSize: 14,
