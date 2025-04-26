@@ -8,7 +8,7 @@ services:
       dockerfile: /dockerfiles/Dockerfile.setup # use this dockerfile for db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: TEMP123
       POSTGRES_DB: EXPOS_THANI_WEB
     ports:
       - "5434:5432"
