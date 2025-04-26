@@ -2,7 +2,7 @@ import { Link, Redirect, Stack } from 'expo-router';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseconfig';
 import { useRouter } from 'expo-router';
-import { StyleSheet, TextInput, Button} from 'react-native';
+import { StyleSheet, TextInput, Button, Alert} from 'react-native';
 
 import { Text, View } from '@/components/Themed';
 import { useState } from 'react';
@@ -16,15 +16,18 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/home")
+      Alert.alert('Success', 'Logged in!');
       console.log("logged in!")
 
     } catch (error: unknown){
-      if(error instanceof Error && error.message.includes('auth/user-not-found')) {
+      if(error instanceof Error) {
         try{
           await createUserWithEmailAndPassword(auth, email, password);
+          Alert.alert('Signing Up')
 
         } catch(createError: unknown) {
           console.error(createError)
+          Alert.alert('User Not found')
 
         }
       }else{
