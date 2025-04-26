@@ -34,3 +34,14 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+#backend 
+backend/NodeJS_CLI/node_modules/
+backend/NodeJS_CLI/.vscode/
+backend/NodeJS_CLI/.pytest_cache/
+backend/.vscode/
+backend/.pytest_cache/
+backend/data/  
+backend/venv/
+
+Pipfile
