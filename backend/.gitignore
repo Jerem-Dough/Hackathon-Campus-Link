@@ -36,12 +36,12 @@ yarn-error.*
 *.tsbuildinfo
 
 #backend 
-backend/NodeJS_CLI/node_modules/
-backend/NodeJS_CLI/.vscode/
-backend/NodeJS_CLI/.pytest_cache/
-backend/.vscode/
-backend/.pytest_cache/
-backend/data/  
-backend/venv/
+/NodeJS_CLI/node_modules/
+/NodeJS_CLI/.vscode/
+/NodeJS_CLI/.pytest_cache/
+/.vscode/
+/.pytest_cache/
+/data/  
+/venv/
 
 Pipfile
