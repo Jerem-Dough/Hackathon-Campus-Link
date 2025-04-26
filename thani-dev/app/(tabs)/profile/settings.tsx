@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 
 import { Text, View } from '@/components/Themed';
 
-export default function NotFoundScreen() {
+export default function SettingsScreen(){
   // Log the reason for the not-found screen
   console.log('NotFoundScreen rendered: The requested route does not exist.');
 
@@ -11,11 +11,12 @@ export default function NotFoundScreen() {
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
       <View style={styles.container}>
-        <Text style={styles.title}>This screen doesn't exist.</Text>
-
-        <Link href="/home" style={styles.link}>
-          <Text style={styles.linkText}>Go to home screen!</Text>
-        </Link>
+        <Text style={styles.title}>Privacy and Security.</Text>
+        {/* <Link href="/home" style={styles.link}> */}
+        <Text style={styles.linkText}>
+          At our company, we prioritize your privacy and security by implementing state-of-the-art encryption protocols, adhering to global compliance standards, and ensuring robust data protection measures to safeguard your personal information.
+        </Text>
+        {/* </Link> */}
       </View>
     </>
   );
