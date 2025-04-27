@@ -1,7 +1,9 @@
-import { StyleSheet, Image, FlatList } from "react-native";
+import { StyleSheet, Image, FlatList, Modal, Pressable } from "react-native";
 import { Text, View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
+import { useState } from "react";
+import ForumPosts from "@/components/ForumPage"; // Add this import
 
 interface Forum {
   id: string;
@@ -37,23 +39,26 @@ const dummyForums: Forum[] = [
 
 export default function ForumScreen() {
   const colorScheme = useColorScheme();
+  const [selectedForum, setSelectedForum] = useState<Forum | null>(null);
 
   const renderForumItem = ({ item }: { item: Forum }) => (
-    <View style={styles.forumItem}>
-      <Image source={item.image} style={styles.forumImage} />
-      <View style={styles.forumContent}>
-        <Text style={styles.forumName}>{item.name}</Text>
-        <Text
-          style={[
-            styles.forumDescription,
-            { color: Colors[colorScheme].tabIconDefault },
-          ]}
-        >
-          {item.description}
-        </Text>
-        <Text style={styles.lastActive}>{item.lastActive}</Text>
+    <Pressable onPress={() => setSelectedForum(item)}>
+      <View style={styles.forumItem}>
+        <Image source={item.image} style={styles.forumImage} />
+        <View style={styles.forumContent}>
+          <Text style={styles.forumName}>{item.name}</Text>
+          <Text
+            style={[
+              styles.forumDescription,
+              { color: Colors[colorScheme].tabIconDefault },
+            ]}
+          >
+            {item.description}
+          </Text>
+          <Text style={styles.lastActive}>{item.lastActive}</Text>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 
   return (
@@ -66,10 +71,36 @@ export default function ForumScreen() {
         style={styles.list}
         contentContainerStyle={styles.listContent}
       />
+
+      {/* Updated Fullscreen Modal */}
+      <Modal
+        visible={!!selectedForum}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => setSelectedForum(null)}
+      >
+        <View style={styles.modalContainer}>
+          {selectedForum && (
+            <>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{selectedForum.name}</Text>
+                <Pressable
+                  style={styles.closeButton}
+                  onPress={() => setSelectedForum(null)}
+                >
+                  <Text style={styles.closeButtonText}>Close</Text>
+                </Pressable>
+              </View>
+              <ForumPosts />
+            </>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
 
+// Update the styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -114,5 +145,32 @@ const styles = StyleSheet.create({
   lastActive: {
     fontSize: 12,
     color: "#666",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#ccc",
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  closeButton: {
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  closeButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
