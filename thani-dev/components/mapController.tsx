@@ -135,12 +135,12 @@ const styles = StyleSheet.create({
   },
   popupContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 125,
     left: 20,
     right: 20,
     backgroundColor: 'white',
     borderRadius: 12,
-    padding: 15,
+    padding: 10,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 5,
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   placeImage: {
     width: '100%',
-    height: 200,
+    height: 150,
     marginBottom: 10,
     borderRadius: 10,
   },
