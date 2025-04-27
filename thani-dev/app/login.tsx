@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, Alert, View, Image, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  TextInput,
+  Alert,
+  View,
+  Image,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { Text } from '@/components/Themed';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
@@ -13,7 +23,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
 
   async function handleLogin() {
-    // Basic client‑side validation
+    // Basic client-side validation
     if (!email.trim()) {
       Alert.alert('Email is required');
       return;
@@ -46,54 +56,70 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: Colors[colorScheme].background }]}>
-      {/* Heading */}
-      <Text style={[styles.title, { color: Colors[colorScheme].text }]}>Welcome Back</Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={80}
+    >
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { backgroundColor: Colors[colorScheme].background },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Image source={Logo} style={styles.logo} />
+        <Text style={[styles.title, { color: Colors[colorScheme].text }]}>Welcome Back</Text>
 
-      {/* Logo */}
-      <Image source={Logo} style={styles.logo} />
+        <TextInput
+          style={[
+            styles.input,
+            {
+              borderColor: Colors[colorScheme].border,
+              color: Colors[colorScheme].text,
+            },
+          ]}
+          placeholder="Email"
+          placeholderTextColor={Colors[colorScheme].border}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+          returnKeyType="next"
+        />
 
-      {/* Email */}
-      <TextInput
-        style={[styles.input, {
-          borderColor: Colors[colorScheme].border,
-          color: Colors[colorScheme].text,
-        }]}
-        placeholder="Email"
-        placeholderTextColor={Colors[colorScheme].border}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
+        <TextInput
+          style={[
+            styles.input,
+            {
+              borderColor: Colors[colorScheme].border,
+              color: Colors[colorScheme].text,
+            },
+          ]}
+          placeholder="Password"
+          placeholderTextColor={Colors[colorScheme].border}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+          returnKeyType="done"
+        />
 
-      {/* Password */}
-      <TextInput
-        style={[styles.input, {
-          borderColor: Colors[colorScheme].border,
-          color: Colors[colorScheme].text,
-        }]}
-        placeholder="Password"
-        placeholderTextColor={Colors[colorScheme].border}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      {/* Action button */}
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText}>Login</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginButtonText}>Login</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 30,
+    paddingBottom: 60, // extra space at the very bottom
   },
   logo: {
     width: 350,
@@ -122,6 +148,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 40, // pushes button up and adds space below
   },
   loginButtonText: {
     fontFamily: 'Poppins',
@@ -130,4 +157,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
 
