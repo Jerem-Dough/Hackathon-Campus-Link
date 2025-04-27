@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, Image } from 'react-native';
 import { AntDesign, Feather, FontAwesome } from '@expo/vector-icons';
 import TabBarButton from '@/components/TabButton';
 import { Tabs } from 'expo-router';
@@ -15,14 +15,14 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const primaryColor = 'black';
-  const greyColor = 'lightgrey';
+  const greyColor = 'white';
 
   const icons: Record<string, (props: { color: string }) => JSX.Element> = {
     home: (props) => <AntDesign name="home" size={26} {...props} />,
     events: (props) => <Feather name="calendar" size={26} {...props} />,
     forum: (props) => <FontAwesome name="comments" size={26} {...props} />,
     map: (props) => <FontAwesome name="map" size={26} {...props} />,
-    profileAndSettings: (props) => <FontAwesome name="user" size={26} {...props} />,
+    profile: (props) => <FontAwesome name="user" size={26} {...props} />,
   };
 
   return (
@@ -63,7 +63,11 @@ const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
           <TabBarButton
             key={route.name}
             isFocused={isFocused}
-            label={typeof label === 'string' ? label : ''}
+            label={
+              typeof label === 'string'
+                ? label.charAt(0).toUpperCase() + label.slice(1)
+                : ''
+            }            
             routeName={route.name}
             color={isFocused ? primaryColor : greyColor}
             onPress={onPress}
@@ -85,43 +89,116 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: useClientOnlyValue(false, true),
-        tabBarStyle: { display: 'none' }, // Hide default tab bar
+        tabBarStyle: { display: 'none' }, 
+        headerStyle: {
+          backgroundColor: '#38b6ff', 
+        },
       }}
       tabBar={(props) => <TabBar {...props} />} // Use custom TabBar
     >
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}>
+                <Image
+                  source={require('../../constants/transparent_blue_logo.png')} // adjust if needed
+                  style={{ width: '105', height: '105', resizeMode: 'contain' }}
+                />
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 25 , fontFamily: 'Poppins'}}>Home</Text>
+            </View>
+          ),
+          headerTitleAlign: 'left',
+          headerStyle: {
+            backgroundColor: '#38b6ff',
+          },
+          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
-          title: 'Events',
-          tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}>
+                <Image
+                  source={require('../../constants/transparent_blue_logo.png')} // adjust if needed
+                  style={{ width: '105', height: '105', resizeMode: 'contain' }}
+                />
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 25,fontFamily: 'Poppins', }}>Events</Text>
+            </View>
+          ),
+          headerTitleAlign: 'left',
+          headerStyle: {
+            backgroundColor: '#38b6ff',
+          },
+          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
         }}
       />
       <Tabs.Screen
         name="forum"
         options={{
-          title: 'Forum',
-          tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}>
+                <Image
+                  source={require('../../constants/transparent_blue_logo.png')} // adjust if needed
+                  style={{ width: '105', height: '105', resizeMode: 'contain' }}
+                />
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 25 , fontFamily: 'Poppins',}}>Forum</Text>
+            </View>
+          ),
+          headerTitleAlign: 'left',
+          headerStyle: {
+            backgroundColor: '#38b6ff',
+          },
+          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
         }}
       />
       <Tabs.Screen
         name="map"
         options={{
-          title: 'Map',
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}>
+                <Image
+                  source={require('../../constants/transparent_blue_logo.png')} // adjust if needed
+                  style={{ width: '105', height: '105', resizeMode: 'contain' }}
+                />
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 25, fontFamily: 'Poppins' }}>Map</Text>
+            </View>
+          ),
+          headerTitleAlign: 'left',
+          headerStyle: {
+            backgroundColor: '#38b6ff',
+          },
           tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="profileAndSettings"
+        name="profile"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}>
+                <Image
+                  source={require('../../constants/transparent_blue_logo.png')} // adjust if needed
+                  style={{ width: '105', height: '105', resizeMode: 'contain' }}
+                />
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 25, fontFamily: 'Poppins' }}>Profile</Text>
+            </View>
+          ),
+          headerTitleAlign: 'left',
+          headerStyle: {
+            backgroundColor: '#38b6ff',
+          },
+          tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
         }}
       />
     </Tabs>
@@ -135,7 +212,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#38b6ff',
     marginHorizontal: 20,
     paddingVertical: 15,
     borderRadius: 25,

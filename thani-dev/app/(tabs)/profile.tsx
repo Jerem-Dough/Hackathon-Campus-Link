@@ -15,7 +15,7 @@ interface Option {
   icon: string;
 }
 
-export default function ProfileAndSettings() {
+export default function Profile() {
   const [selectedOption, setSelectedOption] = useState<Option | null>(null);
 
   // Static options list
@@ -77,8 +77,8 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
   },
   optionText: {
+    fontFamily: 'Poppins',
     fontSize: 18,
-    fontFamily: 'Roboto',
   },
   detailContainer: {
     flex: 1,
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   backButton: {
+    fontFamily: 'Poppins',
     color: 'blue',
     fontSize: 16,
     marginBottom: 10,

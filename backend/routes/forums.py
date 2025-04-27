@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify, request
 from db import get_db_connection
+import openai
+import os
 
 forums_bp = Blueprint('forums', __name__, url_prefix='/api/forums')
 
-# GET posts for a forum
+#  GET posts for a forum 
 @forums_bp.route('/<forum_id>/posts', methods=['GET'])
 def get_forum_posts(forum_id):
     conn = get_db_connection()
@@ -37,7 +39,7 @@ def get_forum_posts(forum_id):
         cursor.close()
         conn.close()
 
-# POST a new post to a forum
+#  POST a new post to a forum 
 @forums_bp.route('/<forum_id>/posts', methods=['POST'])
 def create_post(forum_id):
     data = request.get_json()
@@ -53,10 +55,18 @@ def create_post(forum_id):
     cursor = conn.cursor()
 
     try:
+        # Embed the content before inserting
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        response = openai.embeddings.create(
+            input=content,
+            model="text-embedding-3-small"
+        )
+        content_embedding = response.data[0].embedding
+
         cursor.execute("""
-            INSERT INTO posts (id, forum_id, author_uuid, content)
-            VALUES (%s, %s, %s, %s);
-        """, (post_id, forum_id, author_uuid, content))
+            INSERT INTO posts (id, forum_id, author_uuid, content, embedding)
+            VALUES (%s, %s, %s, %s, %s);
+        """, (post_id, forum_id, author_uuid, content, content_embedding))
         conn.commit()
 
         return jsonify({"message": "Post created successfully"}), 201
@@ -70,7 +80,7 @@ def create_post(forum_id):
         cursor.close()
         conn.close()
 
-# POST a new comment to a post
+#  POST a new comment to a post 
 @forums_bp.route('/<forum_id>/posts/<post_id>/comments', methods=['POST'])
 def create_comment(forum_id, post_id):
     data = request.get_json()
@@ -102,7 +112,7 @@ def create_comment(forum_id, post_id):
         cursor.close()
         conn.close()
 
-# GET comments for a post
+#  GET comments for a post 
 @forums_bp.route('/<forum_id>/posts/<post_id>/comments', methods=['GET'])
 def get_post_comments(forum_id, post_id):
     conn = get_db_connection()
@@ -136,3 +146,56 @@ def get_post_comments(forum_id, post_id):
         cursor.close()
         conn.close()
 
+#  POST search forum posts 
+@forums_bp.route('/search', methods=['POST'])
+def search_posts():
+    data = request.get_json()
+    query = data.get('query')
+
+    if not query:
+        return jsonify({"error": "Missing search query"}), 400
+
+    try:
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        response = openai.embeddings.create(
+            input=query,
+            model="text-embedding-3-small"
+        )
+        search_embedding = response.data[0].embedding
+
+    except Exception as e:
+        print(f"Error creating embedding: {str(e)}")
+        return jsonify({"error": "Failed to create search embedding"}), 500
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            SELECT id, forum_id, author_uuid, content, created_at
+            FROM posts
+            WHERE content IS NOT NULL
+            ORDER BY embedding <=> %s
+            LIMIT 10;
+        """, (search_embedding,))
+        rows = cursor.fetchall()
+
+        results = []
+        for row in rows:
+            results.append({
+                "id": row[0],
+                "forum_id": str(row[1]),
+                "author_uuid": str(row[2]) if row[2] else None,
+                "content": row[3],
+                "created_at": row[4].isoformat() + 'Z'
+            })
+
+        return jsonify(results), 200
+
+    except Exception as e:
+        print(f"Error searching posts: {str(e)}")
+        return jsonify({"error": "Failed to search posts"}), 500
+
+    finally:
+        cursor.close()
+        conn.close()

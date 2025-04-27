@@ -45,9 +45,11 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     lightThemeText: {
+        fontFamily: 'Poppins',
         color: '#242c40',
     },
     darkThemeText: {
+        fontFamily: 'Poppins',
         color: '#d0d0c0',
     },
 });

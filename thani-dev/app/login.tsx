@@ -1,11 +1,12 @@
-import { Link, Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseconfig';
 import { useRouter } from 'expo-router';
-import { StyleSheet, TextInput, Button, Alert} from 'react-native';
+import { StyleSheet, TextInput, Button, Alert, Image, TouchableOpacity} from 'react-native';
 
 import { Text, View } from '@/components/Themed';
 import { useState } from 'react';
+import Logo from '../constants/transparent_logo.png'; // adjust path if needed
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -43,7 +44,8 @@ export default function Login() {
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Login</Text>
+        <Image source={Logo} style={styles.logo} />
         <TextInput
           value={email}
           onChangeText={setEmail}
@@ -68,23 +70,42 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    paddingHorizontal: 30,
   },
   title: {
-    fontSize: 20,
+    fontFamily: 'Poppins',
+    fontSize: 24,
     fontWeight: 'bold',
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
+    marginBottom: 90,
   },
   input: {
-    borderBottomWidth: 1.5,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
+    fontFamily: 'Poppins',
+    width: '100%',
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+    paddingVertical: 12,
+    marginBottom: 20,
+    fontSize: 16,
   },
-  linkText: {
-    fontSize: 14,
-    color: '#2e78b7',
+  logo: {
+    width: 350,
+    height: 350,
+    resizeMode: 'contain',
+    marginBottom: 10,
+  },
+  loginButton: {
+    backgroundColor: '#38b6ff', // Your blue theme
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  loginButtonText: {
+    fontFamily: 'Poppins',
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

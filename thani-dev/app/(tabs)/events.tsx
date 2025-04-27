@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   searchBar: {
+    fontFamily: 'Poppins',
     height: 40,
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -136,6 +137,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   listContent: {
+    fontFamily: 'Poppins',
     paddingBottom: 20,
   },
   card: {
@@ -153,17 +155,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   eventTitle: {
+    fontFamily: 'Poppins',
     fontSize: 18,
     fontWeight: "500",
     marginBottom: 4,
     textAlign: "center",
   },
   eventDescription: {
+    fontFamily: 'Poppins',
     fontSize: 14,
     marginBottom: 6,
     textAlign: "center",
   },
   eventDetails: {
+    fontFamily: 'Poppins',
     fontSize: 14,
   },
 });

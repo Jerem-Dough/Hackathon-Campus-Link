@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   heading: {
+    fontFamily: 'Poppins',
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
@@ -142,10 +143,12 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   label: {
+    fontFamily: 'Poppins',
     flex: 1,
     fontSize: 16,
   },
   token: {
+    fontFamily: 'Poppins',
     flex: 2,
     fontSize: 12,
     color: '#333',
