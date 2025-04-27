@@ -1,48 +1,33 @@
-import { Pressable, StyleSheet } from 'react-native';
-import React, { useEffect } from 'react';
-import Animated, { interpolate, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { Pressable, StyleSheet, useColorScheme } from 'react-native';
+import React from 'react';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 interface TabBarButtonProps {
     isFocused: boolean;
     label: string;
     routeName: string;
-    color: string;
+    color?: string;
     onPress: () => void;
     onLongPress: () => void;
     children?: React.ReactNode;
 }
 
 const TabBarButton: React.FC<TabBarButtonProps> = ({ isFocused, label, routeName, color, onPress, onLongPress, children }) => {
-    const scale = useSharedValue(0);
-
-    useEffect(() => {
-        scale.value = withSpring(isFocused ? 1 : 0, { damping: 10 });
-    }, [scale, isFocused]);
-
-    const animatedIconStyle = useAnimatedStyle(() => {
-        const scaleValue = interpolate(scale.value, [0, 1], [1, 1.4]);
-        const top = interpolate(scale.value, [0, 1], [0, -8]);
-
-        return {
-            transform: [{ scale: scaleValue }],
-            top,
-        };
-    });
+    const colorScheme = useColorScheme();
+    const textColor = color || (colorScheme === 'dark' ? '#FFFFFF' : '#000000'); // Default to light theme color
 
     const animatedTextStyle = useAnimatedStyle(() => {
-        const opacity = interpolate(scale.value, [0, 1], [1, 0]);
-
         return {
-            opacity,
+            opacity: 1, // Keep the text always visible
         };
     });
 
     return (
         <Pressable onPress={onPress} onLongPress={onLongPress} style={styles.container}>
-            <Animated.View style={[animatedIconStyle]}>
+            <Animated.View>
                 {children}
             </Animated.View>
-            <Animated.Text style={[{ color, fontSize: 11 }, animatedTextStyle]}>
+            <Animated.Text style={[{ color: textColor, fontSize: 11 }, animatedTextStyle]}>
                 {label}
             </Animated.Text>
         </Pressable>
