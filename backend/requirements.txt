@@ -2,3 +2,8 @@ Flask>=2.0
 psycopg2-binary>=2.9
 pgvector==0.4.1
 requests
+flask-cors>=3.0
+ics
+icalendar
+openai
+python-dotenv
