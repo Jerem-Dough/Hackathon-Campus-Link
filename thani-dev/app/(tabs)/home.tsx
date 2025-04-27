@@ -1,5 +1,6 @@
 import { StyleSheet, ScrollView,FlatList,Image, TextInput } from 'react-native';
 import { Text, View } from '@/components/Themed';
+import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 
 interface Posts {
@@ -44,7 +45,10 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme() || "light"; // Fallback to "light" if null or undefined
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container} 
+      lightColor={Colors.light.background} 
+      darkColor={Colors.dark.background}
+    >
       {/* Title Section */}
       <Text style={styles.title}>Welcome to Campus Connect</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
@@ -76,7 +80,7 @@ export default function HomeScreen() {
           <Text style={styles.postDetails}>{item.date} @ {item.location}</Text>
         </View>
       ))}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -126,15 +130,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   postCard: {
-    backgroundColor: '#f9f9f9',
     marginHorizontal: 15,
     marginBottom: 20,
     borderRadius: 10,
     padding: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth, 
+    backgroundColor: "transparent",
   },
   postImage: {
     width: '100%',
