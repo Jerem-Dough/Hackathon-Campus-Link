@@ -1,111 +1,117 @@
-import { Stack } from 'expo-router';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseconfig';
-import { useRouter } from 'expo-router';
-import { StyleSheet, TextInput, Button, Alert, Image, TouchableOpacity} from 'react-native';
+import React, { useState } from "react";
+import { StyleSheet, TextInput, Button, Alert, View } from "react-native";
+import { Text } from "@/components/Themed";
+import Colors from "@/constants/Colors";
+import { useColorScheme } from "@/components/useColorScheme";
+import { useRouter } from "expo-router";
 
-import { Text, View } from '@/components/Themed';
-import { useState } from 'react';
-import Logo from '../constants/transparent_logo.png'; // adjust path if needed
-
-export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPass] = useState('');
-  const [name, setName] = useState('');
+export default function LoginScreen() {
+  const colorScheme = useColorScheme() || "light";
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   async function handleLogin() {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/home");
-      Alert.alert('Success', 'Logged in!');
-      console.log("logged in!");
-
-    } catch (error: unknown){
-       if (typeof error === 'object' && error !== null && 'code' in error) {
-    const err = error as { code: string; message: string };
-
-    if (err.code === 'auth/user-not-found') {
-      Alert.alert('Account not found', 'Redirecting to signup...');
-      router.replace('./signup');
-    } else if (err.code === 'auth/wrong-password') {
-      Alert.alert('Wrong Password', 'Please try again.');
-    } else {
-      Alert.alert('Login Error', err.message);
+    // Client-side validation
+    if (!email.trim()) {
+      Alert.alert("Email is required");
+      return;
     }
-  } else {
-    console.error(error);
-    Alert.alert('Login Error', 'An unknown error occurred.');
-  }
+    if (!password) {
+      Alert.alert("Password is required");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://10.5.176.13:5000/api/users/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        // Login succeeded
+        console.log("Logged in!", data);
+        Alert.alert("Success", "Logged in!");
+        router.push("/home");
+      } else {
+        // Backend returned error
+        router.replace("./signup");
+        Alert.alert("Login Error", data.error || "Invalid credentials");
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+      Alert.alert("Login Error", "Unable to reach server");
     }
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-        <Image source={Logo} style={styles.logo} />
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Email"
-          style={styles.input}
-        />
-        <TextInput
-          value={password}
-          onChangeText={setPass}
-          placeholder='password'>
-        </TextInput>
-        <Button title='Login' onPress={handleLogin} />
-        <Button title='Sign Up' onPress={() => router.push('./signup')} />
-
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: Colors[colorScheme].background },
+      ]}
+    >
+      <Text style={[styles.title, { color: Colors[colorScheme].text }]}>
+        Welcome Back
+      </Text>
+      <TextInput
+        style={[
+          styles.input,
+          {
+            borderColor: Colors[colorScheme].border,
+            color: Colors[colorScheme].text,
+          },
+        ]}
+        placeholder="Email"
+        placeholderTextColor={Colors[colorScheme].border}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={[
+          styles.input,
+          {
+            borderColor: Colors[colorScheme].border,
+            color: Colors[colorScheme].text,
+          },
+        ]}
+        placeholder="Password"
+        placeholderTextColor={Colors[colorScheme].border}
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <View style={styles.buttonWrapper}>
+        <Button title="Log In" onPress={handleLogin} />
       </View>
-      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 30,
+    justifyContent: "center",
+    padding: 20,
   },
   title: {
-    fontFamily: 'Poppins',
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 90,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 20,
   },
   input: {
-    fontFamily: 'Poppins',
-    width: '100%',
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    paddingVertical: 12,
-    marginBottom: 20,
-    fontSize: 16,
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
   },
-  logo: {
-    width: 350,
-    height: 350,
-    resizeMode: 'contain',
-    marginBottom: 10,
-  },
-  loginButton: {
-    backgroundColor: '#38b6ff', // Your blue theme
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
+  buttonWrapper: {
     marginTop: 10,
-  },
-  loginButtonText: {
-    fontFamily: 'Poppins',
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });

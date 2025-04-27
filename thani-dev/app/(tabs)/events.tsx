@@ -2,90 +2,81 @@ import { StyleSheet, FlatList, TextInput, Image } from "react-native";
 import { Text, View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react"; // Add useEffect
 
-// Define the Event interface with description
 interface Event {
   id: string;
   title: string;
   description: string;
   date: string;
   location: string;
-  image: any;
+  image: string;
 }
 
-// Dummy events data with description and local image via require
-const dummyEvents: Event[] = [
-  {
-    id: "1",
-    title: "Hackathon at University of Denver",
-    description:
-      "Join students across campus to solve real-world problems in a 24-hour challenge.",
-    date: "2025-05-10",
-    location: "University of Denver",
-    image: require("../../assets/images/human.png"),
-  },
-  {
-    id: "2",
-    title: "Guest Lecture: AI Ethics",
-    description:
-      "A deep dive into ethical considerations in artificial intelligence systems.",
-    date: "2025-05-12",
-    location: "MSU Denver",
-    image: require("../../assets/images/human.png"),
-  },
-  {
-    id: "3",
-    title: "Spring Coding Workshop",
-    description:
-      "Hands-on tutorials on modern development tools and best practices.",
-    date: "2025-05-15",
-    location: "DU Coding Lab",
-    image: require("../../assets/images/human.png"),
-  },
-];
-
 export default function EventsScreen() {
-  const colorScheme = useColorScheme() || "light"; // Fallback to "light" if null or undefined
+  const colorScheme = useColorScheme() || "light";
+  const placeholderColor = Colors[colorScheme].tabIconDefault;
+  const textColor = Colors[colorScheme].text;
+  const borderColor = Colors[colorScheme].tabIconDefault;
+
   const [searchText, setSearchText] = useState("");
+  const [events, setEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch("http://10.5.176.13:5000/api/events/");
+        const data = await response.json();
+        const transformed = data.map((event: Event) => ({
+          ...event,
+          id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
+          image: require("../../assets/images/human.png"),
+        }));
+        const unique = transformed.filter(
+          (e, i, arr) => i === arr.findIndex((x) => x.id === e.id)
+        );
+        setEvents(unique);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+    fetchEvents();
+  }, []);
 
   const filteredEvents = useMemo(
     () =>
-      dummyEvents.filter(
+      events.filter(
         (e) =>
           e.title.toLowerCase().includes(searchText.toLowerCase()) ||
           e.location.toLowerCase().includes(searchText.toLowerCase()) ||
           e.description.toLowerCase().includes(searchText.toLowerCase())
       ),
-    [searchText]
+    [searchText, events]
   );
 
-  const renderItem = ({ item }: { item: Event }) => (
-    <View
-      style={[styles.card, { borderColor: Colors[colorScheme].tabIconDefault }]}
-    >
-      <Image source={item.image} style={styles.eventImage} />
-      <Text style={[styles.eventTitle, { color: Colors[colorScheme].text }]}>
-        {item.title}
-      </Text>
-      <Text
-        style={[
-          styles.eventDescription,
-          { color: Colors[colorScheme]?.tabIconDefault || "#000" }, // Fallback to default color
-        ]}
-      >
-        {item.description}
-      </Text>
-      <Text
-        style={[
-          styles.eventDetails,
-          { color: Colors[colorScheme].tabIconDefault },
-        ]}
-      >
-        {item.date} @ {item.location}
-      </Text>
-    </View>
-  );
+  const DESCRIPTION_MAX_LENGTH = 100;
+
+  const renderItem = ({ item }: { item: Event }) => {
+    const desc =
+      item.description.length > DESCRIPTION_MAX_LENGTH
+        ? `${item.description.slice(0, DESCRIPTION_MAX_LENGTH)}...`
+        : item.description;
+
+    return (
+      <View style={[styles.card, { borderColor }]}>
+        <Image source={item.image} style={styles.eventImage} />
+        <Text style={[styles.eventTitle, { color: textColor }]}>
+          {item.title}
+        </Text>
+        <Text style={[styles.eventDescription, { color: placeholderColor }]}>
+          {desc.replace(/https?:\/\/[^\s]+/g, "")}
+        </Text>
+        <Text style={[styles.eventDetails, { color: placeholderColor }]}>
+          {item.date} @ {item.location}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View
@@ -93,19 +84,17 @@ export default function EventsScreen() {
       lightColor={Colors.light.background}
       darkColor={Colors.dark.background}
     >
-      {/* Search bar with white border and text */}
       <TextInput
         placeholder="Search events..."
-        placeholderTextColor="#fff"
+        placeholderTextColor={placeholderColor}
         value={searchText}
         onChangeText={setSearchText}
         style={[
           styles.searchBar,
           {
             borderWidth: 1,
-            borderColor: "#fff",
-            color: "#fff",
-            backgroundColor: "transparent",
+            borderColor,
+            color: textColor,
           },
         ]}
       />
@@ -127,17 +116,18 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   searchBar: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     height: 40,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 20,
+    backgroundColor: "transparent",
   },
   list: {
     width: "100%",
   },
   listContent: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     paddingBottom: 20,
   },
   card: {
@@ -155,20 +145,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   eventTitle: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 18,
     fontWeight: "500",
     marginBottom: 4,
     textAlign: "center",
   },
   eventDescription: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 14,
     marginBottom: 6,
     textAlign: "center",
   },
   eventDetails: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 14,
   },
 });

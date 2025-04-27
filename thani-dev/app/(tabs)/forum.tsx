@@ -1,9 +1,19 @@
-import { StyleSheet, Image, FlatList, Modal, Pressable } from "react-native";
-import { Text, View } from "@/components/Themed";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Image,
+  FlatList,
+  Modal,
+  Pressable,
+  View,
+} from "react-native";
+import { Text } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
-import { useState } from "react";
-import ForumPosts from "@/components/ForumPage"; // Add this import
+import ForumPosts from "@/components/ForumPage";
+
+// Static blue for close button
+const thaniBlue = "#38b6ff";
 
 interface Forum {
   id: string;
@@ -38,15 +48,22 @@ const dummyForums: Forum[] = [
 ];
 
 export default function ForumScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() || "light";
   const [selectedForum, setSelectedForum] = useState<Forum | null>(null);
 
   const renderForumItem = ({ item }: { item: Forum }) => (
     <Pressable onPress={() => setSelectedForum(item)}>
-      <View style={styles.forumItem}>
+      <View
+        style={[
+          styles.forumItem,
+          { borderBottomColor: Colors[colorScheme].border },
+        ]}
+      >
         <Image source={item.image} style={styles.forumImage} />
         <View style={styles.forumContent}>
-          <Text style={styles.forumName}>{item.name}</Text>
+          <Text style={[styles.forumName, { color: Colors[colorScheme].text }]}>
+            {item.name}
+          </Text>
           <Text
             style={[
               styles.forumDescription,
@@ -55,40 +72,81 @@ export default function ForumScreen() {
           >
             {item.description}
           </Text>
-          <Text style={styles.lastActive}>{item.lastActive}</Text>
+          <Text
+            style={[
+              styles.lastActive,
+              { color: Colors[colorScheme].tabIconDefault },
+            ]}
+          >
+            {item.lastActive}
+          </Text>
         </View>
       </View>
     </Pressable>
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Student Forum</Text>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: Colors[colorScheme].background },
+      ]}
+    >
+      <Text style={[styles.title, { color: Colors[colorScheme].text }]}>
+        Student Forum
+      </Text>
+
       <FlatList
         data={dummyForums}
         keyExtractor={(item) => item.id}
         renderItem={renderForumItem}
         style={styles.list}
         contentContainerStyle={styles.listContent}
+        ItemSeparatorComponent={() => (
+          <View
+            style={{
+              height: StyleSheet.hairlineWidth,
+              backgroundColor: Colors[colorScheme].border,
+            }}
+          />
+        )}
       />
 
-      {/* Updated Fullscreen Modal */}
       <Modal
         visible={!!selectedForum}
         animationType="slide"
         presentationStyle="fullScreen"
         onRequestClose={() => setSelectedForum(null)}
       >
-        <View style={styles.modalContainer}>
+        <View
+          style={[
+            styles.modalContainer,
+            { backgroundColor: Colors[colorScheme].background },
+          ]}
+        >
           {selectedForum && (
             <>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{selectedForum.name}</Text>
+              <View
+                style={[
+                  styles.modalHeader,
+                  { borderBottomColor: Colors[colorScheme].border },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.modalTitle,
+                    { color: Colors[colorScheme].text },
+                  ]}
+                >
+                  {selectedForum.name}
+                </Text>
                 <Pressable
-                  style={styles.closeButton}
+                  style={[styles.closeButton, { backgroundColor: thaniBlue }]}
                   onPress={() => setSelectedForum(null)}
                 >
-                  <Text style={styles.closeButtonText}>Close</Text>
+                  <Text style={[styles.closeButtonText, { color: "#000" }]}>
+                    Close
+                  </Text>
                 </Pressable>
               </View>
               <ForumPosts />
@@ -100,85 +158,41 @@ export default function ForumScreen() {
   );
 }
 
-// Update the styles
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
+  container: { flex: 1, padding: 20 },
   title: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
   },
-  list: {
-    width: "100%",
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
+  list: { width: "100%" },
+  listContent: { paddingBottom: 20 },
   forumItem: {
     flexDirection: "row",
     padding: 15,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ccc",
   },
-  forumImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 15,
-  },
-  forumContent: {
-    fontFamily: 'Poppins',
-    flex: 1,
-    justifyContent: "center",
-  },
+  forumImage: { width: 60, height: 60, borderRadius: 30, marginRight: 15 },
+  forumContent: { fontFamily: "Poppins", flex: 1, justifyContent: "center" },
   forumName: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 18,
     fontWeight: "500",
     marginBottom: 4,
   },
-  forumDescription: {
-    fontFamily: 'Poppins',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  lastActive: {
-    fontFamily: 'Poppins',
-    fontSize: 12,
-    color: "#666",
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "white",
-  },
+  forumDescription: { fontFamily: "Poppins", fontSize: 14, marginBottom: 4 },
+  lastActive: { fontFamily: "Poppins", fontSize: 12 },
+  modalContainer: { flex: 1 },
   modalHeader: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ccc",
   },
-  modalTitle: {
-    fontFamily: 'Poppins',
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  closeButton: {
-    backgroundColor: "#38b6ff",
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  closeButtonText: {
-    fontFamily: 'Poppins',
-    color: "white",
-    fontSize: 14,
-    fontWeight: "600",
-  },
+  modalTitle: { fontFamily: "Poppins", fontSize: 24, fontWeight: "bold" },
+  closeButton: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 8 },
+  closeButtonText: { fontFamily: "Poppins", fontSize: 14, fontWeight: "600" },
 });
