@@ -5,6 +5,7 @@ from db import (
     generate_password,
     check_password_hash,
 )
+from werkzeug.exceptions import Unauthorized
 import openai
 from flasgger import swag_from
 from dotenv import load_dotenv
@@ -164,51 +165,63 @@ def add_user():
     return jsonify({"status": "success", "id": str(new_uuid)}), 201
 
 
-## rout to get user info by uuid
-@users_bp.route("/<uuid:user_uuid>", methods=["GET"])
+@users_bp.route("/login/", methods=["POST"])
 @swag_from(
     {
         "tags": ["Users"],
-        "summary": "Get user by UUID",
-        "description": "Retrieve user information by UUID",
+        "summary": "Log in a user",
+        "description": "Verify email and password, and return the user's UUID on success.",
         "parameters": [
             {
-                "name": "user_uuid",
-                "in": "path",
-                "type": "string",
+                "name": "body",
+                "in": "body",
                 "required": True,
-                "description": "UUID of the user",
-                "format": "uuid",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "email": {
+                            "type": "string",
+                            "example": "johndoe@example.com",
+                            "required": True,
+                        },
+                        "password": {
+                            "type": "string",
+                            "example": "securepassword123",
+                            "required": True,
+                        },
+                    },
+                },
             }
         ],
         "responses": {
             "200": {
-                "description": "User found",
+                "description": "Login successful",
                 "schema": {
                     "type": "object",
                     "properties": {
-                        "uuid": {
-                            "type": "string",
-                            "example": "123e4567-e89b-12d3-a456-426614174000",
-                        },
-                        "name": {"type": "string", "example": "John Doe"},
-                        "interest": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "example": ["AI", "Machine Learning"],
-                        },
-                        "major": {"type": "string", "example": "Computer Science"},
-                        "campus": {"type": "string", "example": "University of Denver"},
-                        "organization_id": {"type": "string", "example": "org_123"},
+                        "status": {"type": "string", "example": "success"},
+                        "id": {"type": "string", "format": "uuid"},
                     },
                 },
             },
-            "404": {
-                "description": "User not found",
+            "400": {
+                "description": "Missing email or password",
                 "schema": {
                     "type": "object",
                     "properties": {
-                        "error": {"type": "string", "example": "User not found"}
+                        "error": {"type": "string", "example": "Email is required"}
+                    },
+                },
+            },
+            "401": {
+                "description": "Invalid credentials",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "error": {
+                            "type": "string",
+                            "example": "Invalid email or password",
+                        }
                     },
                 },
             },
@@ -224,32 +237,34 @@ def add_user():
         },
     }
 )
-def get_user(user_uuid):
+def login_user():
+    data = request.get_json() or {}
+    email = data.get("email", "").strip()
+    password = data.get("password", "")
+
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    if not password:
+        return jsonify({"error": "Password is required"}), 400
+
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
-
-        # Fetch user by UUID
-        query = "SELECT * FROM users WHERE uuid = %s;"
-        cursor.execute(query, (str(user_uuid),))
-        user = cursor.fetchone()
-
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        user_data = {
-            "uuid": str(user[0]),
-            "name": user[1],
-            "interest": user[2],
-            "major": user[3],
-            "campus": user[4],
-            "organization_id": user[5],
-        }
-
-        cursor.close()
+        cur = conn.cursor()
+        cur.execute("SELECT uuid, password FROM users WHERE email = %s", (email,))
+        row = cur.fetchone()
+        cur.close()
         conn.close()
 
-        return jsonify(user_data), 200
+        # If user not found or password does not match
+        if not row or not check_password_hash(row[1], password):
+            raise Unauthorized("Invalid email or password")
 
+        user_uuid = row[0]
+        return jsonify({"status": "success", "id": str(user_uuid)}), 200
+
+    except Unauthorized as e:
+        # 401 on bad credentials
+        return jsonify({"error": str(e)}), 401
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        # catch-all for unexpected errors
+        return jsonify({"error": f"Server error: {e}"}), 500

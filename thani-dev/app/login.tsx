@@ -1,162 +1,117 @@
-import { Stack } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseconfig";
-import { useRouter } from "expo-router";
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  Image,
-  View,
-  ScrollView,
-} from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, TextInput, Button, Alert, View } from "react-native";
 import { Text } from "@/components/Themed";
-import { useState } from "react";
-import Logo from "../constants/transparent_logo.png";
+import Colors from "@/constants/Colors";
+import { useColorScheme } from "@/components/useColorScheme";
+import { useRouter } from "expo-router";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPass] = useState("");
+export default function LoginScreen() {
+  const colorScheme = useColorScheme() || "light";
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   async function handleLogin() {
+    // Client-side validation
+    if (!email.trim()) {
+      Alert.alert("Email is required");
+      return;
+    }
+    if (!password) {
+      Alert.alert("Password is required");
+      return;
+    }
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/home");
-      Alert.alert("Success", "Logged in!");
-      console.log("logged in!");
-    } catch (error: unknown) {
-      if (typeof error === "object" && error !== null && "code" in error) {
-        const err = error as { code: string; message: string };
-        if (err.code === "auth/user-not-found") {
-          Alert.alert("Account not found", "Redirecting to signup...");
-          router.replace("./signup");
-        } else if (err.code === "auth/wrong-password") {
-          Alert.alert("Wrong Password", "Please try again.");
-        } else {
-          Alert.alert("Login Error", err.message);
-        }
+      const response = await fetch("http://10.5.176.13:5000/api/users/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        // Login succeeded
+        console.log("Logged in!", data);
+        Alert.alert("Success", "Logged in!");
+        router.push("/home");
       } else {
-        console.error(error);
-        Alert.alert("Login Error", "An unknown error occurred.");
+        // Backend returned error
+        router.replace("./signup");
+        Alert.alert("Login Error", data.error || "Invalid credentials");
       }
+    } catch (err) {
+      console.error("Network error:", err);
+      Alert.alert("Login Error", "Unable to reach server");
     }
   }
 
   return (
-    <View style={styles.outer}>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.formContainer}>
-          <Image source={Logo} style={styles.logo} />
-
-          <Text style={styles.title}>Login</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            secureTextEntry
-            value={password}
-            onChangeText={setPass}
-          />
-
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Login</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.loginButton, styles.signUpButton]}
-            onPress={() => router.push("./signup")}
-          >
-            <Text style={[styles.loginButtonText, styles.signUpButtonText]}>
-              Sign Up
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: Colors[colorScheme].background },
+      ]}
+    >
+      <Text style={[styles.title, { color: Colors[colorScheme].text }]}>
+        Welcome Back
+      </Text>
+      <TextInput
+        style={[
+          styles.input,
+          {
+            borderColor: Colors[colorScheme].border,
+            color: Colors[colorScheme].text,
+          },
+        ]}
+        placeholder="Email"
+        placeholderTextColor={Colors[colorScheme].border}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={[
+          styles.input,
+          {
+            borderColor: Colors[colorScheme].border,
+            color: Colors[colorScheme].text,
+          },
+        ]}
+        placeholder="Password"
+        placeholderTextColor={Colors[colorScheme].border}
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <View style={styles.buttonWrapper}>
+        <Button title="Log In" onPress={handleLogin} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: {
+  container: {
     flex: 1,
-    backgroundColor: "#f0f0f0",
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    alignItems: "center",
     justifyContent: "center",
-  },
-  formContainer: {
-    width: "90%",
-    backgroundColor: "#fff",
-    borderRadius: 12,
     padding: 20,
-    marginBottom: 60, // leave space at bottom
-    // optional card shadow:
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logo: {
-    width: 180,
-    height: 180,
-    resizeMode: "contain",
-    alignSelf: "center",
-    marginBottom: 24,
   },
   title: {
-    fontFamily: "Poppins",
     fontSize: 24,
-    fontWeight: "bold",
-    alignSelf: "center",
-    marginBottom: 24,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 20,
   },
   input: {
-    width: "100%",
+    height: 50,
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 20,
-    fontSize: 16,
-    fontFamily: "Poppins",
-    backgroundColor: "#fafafa",
+    paddingHorizontal: 12,
+    marginBottom: 16,
   },
-  loginButton: {
-    width: "100%",
-    backgroundColor: "#2e78b7",
-    paddingVertical: 14,
-    borderRadius: 25,
-    alignItems: "center",
+  buttonWrapper: {
     marginTop: 10,
-  },
-  loginButtonText: {
-    fontFamily: "Poppins",
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  signUpButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#2e78b7",
-  },
-  signUpButtonText: {
-    color: "#2e78b7",
   },
 });
