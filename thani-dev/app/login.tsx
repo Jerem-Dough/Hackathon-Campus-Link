@@ -53,12 +53,12 @@ export default function Login() {
         <TextInput
           value={password}
           onChangeText={setPass}
-          value={password}
           placeholder='password'>
         </TextInput>
         <Button title='Login' onPress={handleLogin} />
         <Button title='Sign Up' onPress={() => router.push('./signup')} />
 
+      </View>
       </View>
   );
 }
