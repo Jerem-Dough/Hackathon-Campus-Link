@@ -5,6 +5,9 @@ import openai
 import os
 import uuid
 
+
+# ABE: look at app.py before adding url prefix
+# or follow similar patter to first two functions
 forums_bp = Blueprint("forums", __name__)
 
 
