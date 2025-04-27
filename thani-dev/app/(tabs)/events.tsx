@@ -2,90 +2,102 @@ import { StyleSheet, FlatList, TextInput, Image } from "react-native";
 import { Text, View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react"; // Add useEffect
 
-// Define the Event interface with description
+// Update Event interface to match API response
 interface Event {
   id: string;
   title: string;
   description: string;
   date: string;
   location: string;
-  image: any;
+  image: string; // Changed from any to string
 }
 
-// Dummy events data with description and local image via require
-const dummyEvents: Event[] = [
-  {
-    id: "1",
-    title: "Hackathon at University of Denver",
-    description:
-      "Join students across campus to solve real-world problems in a 24-hour challenge.",
-    date: "2025-05-10",
-    location: "University of Denver",
-    image: require("../../assets/images/human.png"),
-  },
-  {
-    id: "2",
-    title: "Guest Lecture: AI Ethics",
-    description:
-      "A deep dive into ethical considerations in artificial intelligence systems.",
-    date: "2025-05-12",
-    location: "MSU Denver",
-    image: require("../../assets/images/human.png"),
-  },
-  {
-    id: "3",
-    title: "Spring Coding Workshop",
-    description:
-      "Hands-on tutorials on modern development tools and best practices.",
-    date: "2025-05-15",
-    location: "DU Coding Lab",
-    image: require("../../assets/images/human.png"),
-  },
-];
-
 export default function EventsScreen() {
-  const colorScheme = useColorScheme() || "light"; // Fallback to "light" if null or undefined
+  const colorScheme = useColorScheme() || "light";
   const [searchText, setSearchText] = useState("");
+  const [events, setEvents] = useState<Event[]>([]); // New state for events
 
+  // Fetch events from API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch("http://10.5.176.13:5000/api/events/");
+        const data = await response.json();
+
+        // Transform the data and ensure unique IDs
+        const transformedData = data.map((event: Event) => ({
+          ...event,
+          id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`, // Fallback ID if none exists
+          image: require("../../assets/images/human.png"),
+        }));
+
+        // Verify no duplicate IDs exist
+        const uniqueEvents = transformedData.filter(
+          (event, index, self) =>
+            index === self.findIndex((e) => e.id === event.id)
+        );
+
+        setEvents(uniqueEvents);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Update filteredEvents to use events state instead of dummyEvents
   const filteredEvents = useMemo(
     () =>
-      dummyEvents.filter(
+      events.filter(
         (e) =>
           e.title.toLowerCase().includes(searchText.toLowerCase()) ||
           e.location.toLowerCase().includes(searchText.toLowerCase()) ||
           e.description.toLowerCase().includes(searchText.toLowerCase())
       ),
-    [searchText]
+    [searchText, events]
   );
 
-  const renderItem = ({ item }: { item: Event }) => (
-    <View
-      style={[styles.card, { borderColor: Colors[colorScheme].tabIconDefault }]}
-    >
-      <Image source={item.image} style={styles.eventImage} />
-      <Text style={[styles.eventTitle, { color: Colors[colorScheme].text }]}>
-        {item.title}
-      </Text>
-      <Text
+  const DESCRIPTION_MAX_LENGTH = 100; // You can adjust this number
+
+  const renderItem = ({ item }: { item: Event }) => {
+    const truncatedDescription =
+      item.description.length > DESCRIPTION_MAX_LENGTH
+        ? `${item.description.slice(0, DESCRIPTION_MAX_LENGTH)}...`
+        : item.description;
+
+    return (
+      <View
         style={[
-          styles.eventDescription,
-          { color: Colors[colorScheme]?.tabIconDefault || "#000" }, // Fallback to default color
+          styles.card,
+          { borderColor: Colors[colorScheme].tabIconDefault },
         ]}
       >
-        {item.description}
-      </Text>
-      <Text
-        style={[
-          styles.eventDetails,
-          { color: Colors[colorScheme].tabIconDefault },
-        ]}
-      >
-        {item.date} @ {item.location}
-      </Text>
-    </View>
-  );
+        <Image source={item.image} style={styles.eventImage} />
+        <Text style={[styles.eventTitle, { color: Colors[colorScheme].text }]}>
+          {item.title}
+        </Text>
+        <Text
+          style={[
+            styles.eventDescription,
+            { color: Colors[colorScheme]?.tabIconDefault || "#000" },
+          ]}
+        >
+          {truncatedDescription.replace(/https?:\/\/[^\s]+/g, "")}
+        </Text>
+        <Text
+          style={[
+            styles.eventDetails,
+            { color: Colors[colorScheme].tabIconDefault },
+          ]}
+        >
+          {item.date} @ {item.location}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View
@@ -127,7 +139,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   searchBar: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     height: 40,
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -137,7 +149,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   listContent: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     paddingBottom: 20,
   },
   card: {
@@ -155,20 +167,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   eventTitle: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 18,
     fontWeight: "500",
     marginBottom: 4,
     textAlign: "center",
   },
   eventDescription: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 14,
     marginBottom: 6,
     textAlign: "center",
   },
   eventDetails: {
-    fontFamily: 'Poppins',
+    fontFamily: "Poppins",
     fontSize: 14,
   },
 });
