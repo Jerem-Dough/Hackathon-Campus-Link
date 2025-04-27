@@ -16,3 +16,13 @@ def get_db_connection():
         password=DB_PASSWORD
     )
     return conn
+
+
+
+def insert_event():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO events (event_name) VALUES (%s)", ("Test Event",))
+    conn.commit()
+    cursor.close()
+    conn.close()
