@@ -1,15 +1,16 @@
 from flask import Flask
+from flask_cors import CORS
 from routes.events import events_bp
 from routes.users import users_bp
 from routes.forums import forums_bp
 
 app = Flask(__name__)
+CORS(app)
 
 # Register blueprints
 app.register_blueprint(events_bp)
 app.register_blueprint(users_bp)
 app.register_blueprint(forums_bp)
-CORS(app)
 
 def get_conn():
     """Open a new psycopg2 connection and register the vector type."""
