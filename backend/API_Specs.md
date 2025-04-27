@@ -1,11 +1,18 @@
-## Backend Endpoints
+Here’s your text **rewritten** into **Event Section**, **Forum Section**, and **User Section** — clean and organized:
 
-### 1. Get Event Recommendations (User-Specific)
+---
+
+# Backend Endpoints
+
+## Event Section
+
+### Get Event Recommendations (User-Specific)
 
 - **Endpoint:** `GET /api/users/{userUuid}/events/recommendations`
-- **Description:** Returns event recommendations for the user.
+- **Description:** Fetch personalized event recommendations for a user.
 - **Path Parameter:** `userUuid`
-- **Response:**
+- **Response Example:**
+
 ```json
 [
   {
@@ -19,11 +26,12 @@
 ]
 ```
 
-### 2. Get All Events
+### Get All Events
 
 - **Endpoint:** `GET /api/events`
-- **Description:** Returns a general list of events.
-- **Response:**
+- **Description:** Fetch a general list of all available events.
+- **Response Example:**
+
 ```json
 [
   {
@@ -37,12 +45,17 @@
 ]
 ```
 
-### 3. Get Forums a User is In
+---
+
+## Forum Section
+
+### Get Forums a User is In
 
 - **Endpoint:** `GET /api/users/{userUuid}/forums`
-- **Description:** Returns forums the user is a member of.
+- **Description:** Fetch the forums that a user is a member of.
 - **Path Parameter:** `userUuid`
-- **Response:**
+- **Response Example:**
+
 ```json
 [
   {
@@ -55,12 +68,13 @@
 ]
 ```
 
-### 4. Get Posts in a Forum
+### Get all Posts in a Forum
 
 - **Endpoint:** `GET /api/forums/{forumId}/posts`
-- **Description:** Returns all posts in a forum.
+- **Description:** Fetch all posts within a specific forum.
 - **Path Parameter:** `forumId`
-- **Response:**
+- **Response Example:**
+
 ```json
 [
   {
@@ -74,11 +88,15 @@
 
 ---
 
-**Summary:**
+## User Section
 
-| Endpoint | UUID Needed |
-|:---------|:------------|
-| `/api/users/{userUuid}/events/recommendations` | Yes |
-| `/api/events` | No |
-| `/api/users/{userUuid}/forums` | Yes |
-| `/api/forums/{forumId}/posts` | No (unless user-specific customization needed) |
+| Endpoint                                       | UUID Needed                                        |
+| :--------------------------------------------- | :------------------------------------------------- |
+| `/api/users/{userUuid}/events/recommendations` | Yes                                                |
+| `/api/events`                                  | No                                                 |
+| `/api/users/{userUuid}/forums`                 | Yes                                                |
+| `/api/forums/{forumId}/posts`                  | No (unless forum-specific customization is needed) |
+
+---
+
+Would you also like me to make an even tighter version if you want it for documentation (super clean like an OpenAPI format)? 🚀

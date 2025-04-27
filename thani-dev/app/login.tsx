@@ -37,24 +37,27 @@ export default function Login() {
   }
 
   return (
+    <View style={{ flex: 1 }}>
+      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
-        <TextInput 
-          style={styles.input}
+        <TextInput
+          value={email}
           onChangeText={setEmail}
-          placeholder='example@du.edu'
-          value={email}>
-        </TextInput>
-        <TextInput 
+          placeholder="Email"
           style={styles.input}
-          onChangeText={setPass}
+        />
+        <TextInput
           value={password}
-          placeholder='password'>
-        </TextInput>
-        <Button title='Login/Sign Up' onPress={handleLogin} />
-
+          onChangeText={setPass}
+          placeholder="Password"
+          secureTextEntry
+          style={styles.input}
+        />
+        <Button title="Login" onPress={handleLogin} />
       </View>
-  );
+    </View>
+  );  
 }
 
 const styles = StyleSheet.create({

@@ -11,7 +11,7 @@ export default function HelpSupportScreen() {
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
       <View style={styles.container}>
-        <Text style={styles.title}>Privacy and Security.</Text>
+        <Text style={styles.title}>Help & Support</Text>
         {/* <Link href="/home" style={styles.link}> */}
         <Text style={styles.linkText}>
           At our company, we prioritize your privacy and security by implementing state-of-the-art encryption protocols, adhering to global compliance standards, and ensuring robust data protection measures to safeguard your personal information.

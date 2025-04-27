@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Dimensions, ActivityIndicator, View, Text, Image, ScrollView } from 'react-native';
+import { StyleSheet, Dimensions, ActivityIndicator, View, Text, TextInput, Image, ScrollView } from 'react-native';
 import MapView, { PROVIDER_DEFAULT, Marker, UrlTile } from 'react-native-maps';
 import axios from 'axios';
 import { useRouter } from 'expo-router'; 
@@ -9,44 +9,92 @@ export default function MapController() {
   const [places, setPlaces] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const getPhotoUrl = (photoReference) => {
+    const apiKey = 'AIzaSyBuQZm9NDoMj1KJgRHiJaJGmfaWOvsGRAY';
+    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${apiKey}`;
+  };
+  const knownTypes = [
+    'restaurant',
+    'cafe',
+    'bar',
+    'university',
+    'library',
+    'gym',
+    'school',
+    'hospital',
+    'park',
+    'restaurants',
+    'cafes',
+    'bars',
+    'universities',
+    'libraries',
+    'gyms',
+    'schools',
+    'hospitals',
+    'parks'
+  ];
+  
 
   useEffect(() => {
-    fetchNearbyPlaces();
+    fetchNearbyPlaces('');
   }, []);
 
-  const fetchNearbyPlaces = async () => {
+  const fetchNearbyPlaces = async (keyword: string) => {
     const latitude = 39.6780;
     const longitude = -104.9614;
-    const radius = 1500; // meters (~1 mile)
-    const type = 'restaurant';
-
+    const radius = 1500; // meters
     const apiKey = 'AIzaSyBuQZm9NDoMj1KJgRHiJaJGmfaWOvsGRAY'; 
 
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${apiKey}`;
+    let url = '';
 
+    if (knownTypes.includes(keyword.toLowerCase())) {
+      const type = keyword.toLowerCase();
+      url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${apiKey}`;
+    } else {
+      url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&keyword=${encodeURIComponent(keyword)}&key=${apiKey}`;
+    }
+  
     try {
       const response = await axios.get(url);
-      setPlaces(response.data.results);
+      setPlaces(response.data.results || []);
     } catch (err) {
       console.error('Error fetching places:', err);
       setError(err);
     }
   };
 
-  const getPhotoUrl = (photoReference) => {
-    const apiKey = 'AIzaSyBuQZm9NDoMj1KJgRHiJaJGmfaWOvsGRAY';
-    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${apiKey}`;
-  };
-
   return (
     <View style={styles.container}>
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Search for a place..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={() => fetchNearbyPlaces(searchQuery)}
+          style={styles.searchInput}
+          placeholderTextColor="#aaa"
+        />
+        
+        {searchQuery.length > 0 && (
+          <Text style={styles.clearButton} onPress={() => {
+            setSearchQuery('');
+            fetchNearbyPlaces(); // Reload default (restaurants)
+          }}>
+            X
+          </Text>
+        )}
+      </View>
+
+      {/* Loading Spinner */}
       {!isMapLoaded && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#2e78b7" />
         </View>
       )}
 
+      {/* Map */}
       <MapView
         style={styles.map}
         provider={PROVIDER_DEFAULT}
@@ -58,10 +106,10 @@ export default function MapController() {
         }}
         onMapReady={() => setIsMapLoaded(true)}
         onPress={(e) => {
-        if (e.nativeEvent.action !== 'marker-press') {
-          setSelectedPlace(null);
-        }
-      }}
+          if (e.nativeEvent.action !== 'marker-press') {
+            setSelectedPlace(null);
+          }
+        }}
       >
         <UrlTile
           urlTemplate="https://api.mapbox.com/styles/v1/pravasiap/cm9ym33wp00ze01so7evi212q/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoicHJhdmFzaWFwIiwiYSI6ImNtOXlsb3NtZzFrNjIycXBtNjk0ZjRlc3cifQ.obt9ZywKXyz4vauoooSxwQ"
@@ -82,51 +130,75 @@ export default function MapController() {
         ))}
       </MapView>
 
-          {selectedPlace && (
-      <View style={styles.popupContainer}>
-        <ScrollView>
-          {selectedPlace.photos && selectedPlace.photos.length > 0 && (
-            <Image
-              source={{ uri: getPhotoUrl(selectedPlace.photos[0].photo_reference) }}
-              style={styles.placeImage}
-            />
-          )}
-          <Text style={styles.placeTitle}>{selectedPlace.name}</Text>
-          <Text style={styles.placeAddress}>{selectedPlace.vicinity}</Text>
+      {/* Popup */}
+      {selectedPlace && (
+        <View style={styles.popupContainer}>
+          <ScrollView>
+            {selectedPlace.photos && selectedPlace.photos.length > 0 && (
+              <Image
+                source={{ uri: getPhotoUrl(selectedPlace.photos[0].photo_reference) }}
+                style={styles.placeImage}
+              />
+            )}
+            <Text style={styles.placeTitle}>{selectedPlace.name}</Text>
+            <Text style={styles.placeAddress}>{selectedPlace.vicinity}</Text>
 
-          <View style={styles.buttonRow}>
-          <Text style={styles.closeButton} onPress={() => setSelectedPlace(null)}>
-            Close
-          </Text>
-          <Text
-            style={styles.moreDetailsButton}
-            onPress={() => {
-              router.push({
-                pathname: 'placeDetailsController',
-                params: {
-                  placeName: selectedPlace.name,
-                  address: selectedPlace.vicinity,
-                  rating: selectedPlace.rating,
-                  placeId: selectedPlace.place_id,
-                  types: selectedPlace.types ? selectedPlace.types.join(', ') : '',
-                },
-              });
-            }}
-          >
-            More Details
-          </Text>
+            <View style={styles.buttonRow}>
+              <Text style={styles.closeButton} onPress={() => setSelectedPlace(null)}>
+                Close
+              </Text>
+              <Text
+                style={styles.moreDetailsButton}
+                onPress={() => {
+                  router.push({
+                    pathname: 'placeDetailsController',
+                    params: {
+                      placeName: selectedPlace.name,
+                      address: selectedPlace.vicinity,
+                      rating: selectedPlace.rating,
+                      placeId: selectedPlace.place_id,
+                      types: selectedPlace.types ? selectedPlace.types.join(', ') : '',
+                    },
+                  });
+                }}
+              >
+                More Details
+              </Text>
+            </View>
+          </ScrollView>
         </View>
-
-        </ScrollView>
-      </View>
-    )}
-
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  searchContainer: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    right: 20,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    zIndex: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  searchInput: {
+    fontSize: 16,
+  },
+  clearButton: {
+    position: 'absolute',
+    right: 10,
+    top: '90%',
+    transform: [{ translateY: -10 }],
+    fontSize: 18,
+  },  
   map: { width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   loadingOverlay: {
     position: 'absolute',
@@ -148,12 +220,14 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   placeTitle: {
+    
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
     textAlign: 'center',
   },
   placeAddress: {
+    
     fontSize: 14,
     color: 'gray',
     textAlign: 'center',
