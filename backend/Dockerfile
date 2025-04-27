@@ -10,4 +10,4 @@ ENV POSTGRES_DB=mydatabase
 EXPOSE 5432
 
 # Add a script to create extensions automatically
-COPY ./docker-entrypoint-initdb.d/extensions.sql /docker-entrypoint-initdb.d/
+COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d
