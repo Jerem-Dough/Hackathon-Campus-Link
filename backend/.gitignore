@@ -16,3 +16,6 @@ data/*
 # Pipenv
 Pipfile
 Pipfile.lock
+.venv
+.env
+.envrc
