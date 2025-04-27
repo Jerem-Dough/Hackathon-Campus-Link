@@ -1,93 +1,50 @@
 from flask import Flask, jsonify, request
-from flask_cors import CORS
-import psycopg2
 import os
+import psycopg2
+import psycopg2.extras
+from pgvector.psycopg2 import register_vector
+from routes.events import events_bp
+from routes.users import users_bp
+from routes.forums import forums_bp
 
 app = Flask(__name__)
 CORS(app)
 
-# Database connection settings
-DB_HOST = os.getenv('POSTGRES_HOST', 'localhost')
-DB_PORT = os.getenv('POSTGRES_PORT', '5432')
-DB_NAME = os.getenv('POSTGRES_DB', 'EXPOS_THANI_WEB')
-DB_USER = os.getenv('POSTGRES_USER', 'postgres')
-DB_PASS = os.getenv('POSTGRES_PASSWORD', 'TEMP123')
-
-def get_db_connection():
-    conn = psycopg2.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        database=DB_NAME,
-        user=DB_USER,
-        password=DB_PASS
-    )
+def get_conn():
+    """Open a new psycopg2 connection and register the vector type."""
+    conn = psycopg2.connect(os.getenv("DATABASE_URL", "postgresql://postgres:TEMP123@db:5432/EXPOS_THANI_WEB"))
+    register_vector(conn)
     return conn
 
-# ========== API ROUTES ==========
+# Register blueprints
+app.register_blueprint(events_bp, url_prefix='/api')
+app.register_blueprint(users_bp, url_prefix='/api')
+app.register_blueprint(forums_bp, url_prefix='/api')
 
-@app.route('/api/events', methods=['GET'])
-def get_events():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT id, title, description, event_date, location FROM events')
-    events = cur.fetchall()
+# --- Test endpoints for recommendation functions ---
+@app.route('/api/test/user/<uuid:user_uuid>/recommendations', methods=['GET'])
+def test_user_recommendations(user_uuid):
+    """Call the recommend_events_for_user DB function and return JSON."""
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("SELECT * FROM recommend_events_for_user(%s, %s);", (str(user_uuid), 10))
+    recs = cur.fetchall()
     cur.close()
     conn.close()
+    return jsonify(recs)
 
-    events_list = []
-    for event in events:
-        events_list.append({
-            'id': event[0],
-            'title': event[1],
-            'description': event[2],
-            'event_date': event[3],
-            'location': event[4]
-        })
-
-    return jsonify(events_list)
-
-@app.route('/api/forums', methods=['GET'])
-def get_forums():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT id, title, content, user_id, created_at FROM forums')
-    forums = cur.fetchall()
+@app.route('/api/test/tags/recommendations', methods=['GET'])
+def test_tag_recommendations():
+    """Call the recommend_events_by_tags DB function with ?tags=...&limit=..."""
+    tags = request.args.getlist('tags')
+    limit = request.args.get('limit', default=10, type=int)
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute("SELECT * FROM recommend_events_by_tags(%s, %s);", (tags, limit))
+    recs = cur.fetchall()
     cur.close()
     conn.close()
-
-    forums_list = []
-    for forum in forums:
-        forums_list.append({
-            'id': forum[0],
-            'title': forum[1],
-            'content': forum[2],
-            'user_id': str(forum[3]),
-            'created_at': forum[4]
-        })
-
-    return jsonify(forums_list)
-
-@app.route('/api/accounts', methods=['GET'])
-def get_accounts():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT id, username, campus, created_at FROM accounts')
-    accounts = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    accounts_list = []
-    for account in accounts:
-        accounts_list.append({
-            'id': str(account[0]),
-            'username': account[1],
-            'campus': account[2],
-            'created_at': account[3]
-        })
-
-    return jsonify(accounts_list)
-
-# ========== MAIN ==========
+    return jsonify(recs)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
