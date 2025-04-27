@@ -6,4 +6,4 @@ flask-cors>=3.0
 ics
 icalendar
 openai
-dotenv
+python-dotenv
