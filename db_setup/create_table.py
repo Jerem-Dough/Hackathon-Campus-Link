@@ -1,14 +1,13 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from datapipeline import get_db_connection
-import openai
-from dotenv import load_dotenv
+from openai import OpenAI
 import os
-# Load environment variables from a .env file
-load_dotenv()
-# Set the OpenAI API key as an environment variable
-# Set OpenAI API key from environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+from dotenv import load_dotenv
+
+api_key = "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"
+client = OpenAI(api_key=api_key)
+
 def create_extensions():
     conn = get_db_connection()
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -312,7 +311,8 @@ def add_dummy_organizations():
         for org in organizations:
             # Create embedding from organization data
             embedding_text = f"{org['title']} {org['description']} {' '.join(org['tags'])}"
-            response = openai.embeddings.create(
+            
+            response = client.embeddings.create(
                 input=embedding_text,
                 model="text-embedding-3-small"
             )
@@ -345,10 +345,17 @@ def add_dummy_organizations():
         conn.close()
 
 def main():
+    # Debug prints for environment variables
+    print("=== Environment Variables Debug ===")
+    print(f"OPENAI_API_KEY: {os.getenv("OPENAI_API_KEY")}...") if os.getenv("OPENAI_API_KEY") else print("OPENAI_API_KEY: Not set")
+    print(f"POSTGRES_USER: {os.getenv('POSTGRES_USER', 'Not set')}")
+    print(f"POSTGRES_DB: {os.getenv('POSTGRES_DB', 'Not set')}")
+    print("================================")
+
     create_extensions()
     create_tables()
-    add_dummy_organizations()  # Add this line to create dummy data
-    print("making SQL functions..,..")
+    add_dummy_organizations()
+    print("making SQL functions...")
     create_functions()
 
 if __name__ == "__main__":
