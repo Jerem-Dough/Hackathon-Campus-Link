@@ -15,7 +15,7 @@ def create_embedding(text) -> list[float]:
         input=text,
         model="text-embedding-3-small"
     )
-    print(response)
+    # print(response)
     embedding = response.data[0].embedding
     return embedding
   
