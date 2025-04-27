@@ -52,7 +52,7 @@ users_bp = Blueprint('users', __name__, url_prefix='/api/users')
                 },
                 "organization_id": {
                     "type": "string",
-                    "example": "org_123"
+                    "example": "AI Society"
                 }
             }
         }
@@ -241,3 +241,4 @@ def get_user(user_uuid):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
