@@ -4,37 +4,9 @@ import os
 import psycopg2
 import psycopg2.extras
 from flask import Blueprint, jsonify, request
+# from werkzeug.routing import UUIDConverter
 from pgvector.psycopg2 import register_vector
-from sentence_transformers import SentenceTransformer
-events_bp = Blueprint('events', __name__, url_prefix='/api')
-
-@events_bp.route('/events', methods=['GET'])
-def get_all_events():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, title, event_date, location FROM events;")
-    rows = cursor.fetchall()
-    conn.close()
-
-    events = []
-    for row in rows:
-        events.append({
-            "id": row[0],
-            "title": row[1],
-            "date": row[2].strftime('%Y-%m-%d'),
-            "location": row[3],
-            "image": "/images/default.png",
-            "description": "Default description"  
-        })
-
-    return jsonify(events)
-########## SEARCH EVENTS ROUTER: 
-
-# events_bp = Blueprint('events', __name__, url_prefix='/api')
-
-# Load the embedding model
-embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
-
+import openai
 def get_db_connection():
     conn = psycopg2.connect(
         os.getenv(
@@ -45,14 +17,121 @@ def get_db_connection():
     register_vector(conn)
     return conn
 
+events_bp = Blueprint('events', __name__, url_prefix='/api')
+
+# Register UUIDConverter for the app
+# def register_uuid_converter(app):
+#     app.url_map.converters['uuid'] = UUIDConverter
 
 
-# get all events search 
-@events_bp.route('/events', methods=['GET'])
-def get_all_events():
+
+# INSERTION FUNCTIONALITIES: 
+
+@events_bp.route('/events/add',methods=['POST'])
+def insert_event(entryjson):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, title, event_date, location FROM events;")
+    
+    for row in entryjson:
+        # Extract values from the JSON row
+        id = row.get('id')
+        title = row.get('title')
+        date = row.get('date')
+        location = row.get('location')
+        image = row.get('image', '/images/default.png')  # Default image if not provided
+        description = row.get('description')
+        tags = row.get('tags', [])
+        tags_text = " ".join(tags)  # Combine tags into a single string
+        embedding = get_embedding_from_gpt(tags_text)  # Generate embedding based on tags
+
+        # add into the events table
+        cursor.execute("""
+            INSERT INTO events (id, title, date, location, image, description, tags, embedding)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id) DO NOTHING;
+        """, (id, title, date, location, image, description, tags, embedding))
+    
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+@events_bp.route('/events/remove', methods=['DELETE'])
+
+def remove_event(entryjson):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    for row in entryjson:
+        # Extract the event ID from the JSON row
+        id = row.get('id')
+
+        # Remove the event from the events table
+        cursor.execute("""
+            DELETE FROM events
+            WHERE id = %s;
+        """, (id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+@events_bp.route("/events/org/add",METHODS=['POST'])
+def insert_organization(entryjson):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    for row in entryjson:
+        # Extract values from the JSON row
+        id = row.get('id')
+        title = row.get('title')
+        location = row.get('location')
+        image = row.get('image', '/images/default.png')  # Default image if not provided
+        description = row.get('description')
+        tags = row.get('tags', [])
+        tags_text = " ".join(tags)  # Combine tags into a single string
+        embedding = get_embedding_from_gpt(tags_text)  # Generate embedding based on tags
+
+        # Add into the organization table
+        cursor.execute("""
+            INSERT INTO organization (id, title, location, image, description, tags, embedding)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id) DO NOTHING;
+        """, (id, title, location, image, description, tags, embedding))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+@events_bp.route("/events/org/remove", methods=['DELETE'])
+def remove_organization(entryjson):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    for row in entryjson:
+        # Extract the organization ID from the JSON row
+        id = row.get('id')
+
+        # Remove the organization from the organization table
+        cursor.execute("""
+            DELETE FROM organization
+            WHERE id = %s;
+        """, (id,))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+
+# SEARCHING FUNCTIONALITIES:::
+
+
+@events_bp.route('/events', methods=['GET'])
+def get_all_events():
+    # get all events that are new 
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, event_date, location, description FROM events WHERE event_date > Now();")
     rows = cursor.fetchall()
     conn.close()
 
@@ -64,18 +143,36 @@ def get_all_events():
             "date": row[2].strftime('%Y-%m-%d'),
             "location": row[3],
             "image": "/images/default.png",
-            "description": "Default description"  
+            "description": row[4]
         })
 
     return jsonify(events)
+########## SEARCH EVENTS ROUTER: 
+
+# events_bp = Blueprint('events', __name__, url_prefix='/api')
+
+# Load the embedding model
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def get_embedding_from_gpt(text):
+# def create_embedding(text) -> list[float]:
 
 
+    response = openai.embeddings.create(
+        input=text,
+        model="text-embedding-3-small"
+    )
+    print(response)
+    embedding = response.data[0].embedding
+    return embedding
+  
 
-# search events by emb
-@events_bp.route('/events/embeddings/', methods=['POST'])
+
+# search events by embedding
+@events_bp.route('/events/search/embed', methods=['POST'])
 def search_events_by_embedding():
     """
-    POST /api/events
+    POST /api/events/embeddings/
     Body: { "text": "example input", "limit": 5 }
     Searches for events similar to the input text based on embeddings.
     """
@@ -86,15 +183,15 @@ def search_events_by_embedding():
     if not text_input:
         return jsonify({"error": "Text input is required"}), 400
 
-    # Generate embedding for the input text
-    input_embedding = embedding_model.encode(text_input).tolist()
+    # get embedding for the input text using GPT
+    input_embedding = get_embedding_from_gpt(text_input)
 
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # Perform the nearest-neighbor search using cosine similarity
     cur.execute("""
-        SELECT id, title, description, location, date, 
+        SELECT id, title, description, location, event_date AS date, 
                1 - (embedding <=> %s::vector) AS similarity
         FROM events
         ORDER BY embedding <=> %s::vector
@@ -104,13 +201,10 @@ def search_events_by_embedding():
     rows = cur.fetchall()
     cur.close()
     conn.close()
-
     # Convert any date/time fields to ISO format
     results = []
     for row in rows:
-        for key, val in row.items():
-            if hasattr(val, 'isoformat'):
-                row[key] = val.isoformat()
+        row['date'] = row['date'].isoformat() if row['date'] else None
         results.append(row)
 
     return jsonify(results)
@@ -119,7 +213,7 @@ def search_events_by_embedding():
 
 ### ADVANCED EMBEDDING SEARCHs
 
-@events_bp.route('/recommended/orgs/<uuid:user_uuid>', methods=['GET'])
+@events_bp.route('/events/orgs/recommended/<uuid:user_uuid>', methods=['GET'])
 def recommend_organizations_for_user(user_uuid):
     """
     GET /api/organizations/orgs/recommended/<user_uuid>?limit=5
@@ -149,7 +243,7 @@ def recommend_organizations_for_user(user_uuid):
 
 
 
-@events_bp.route('/recommended/<uuid:user_uuid>', methods=['GET'])
+@events_bp.route('/events/recommended<uuid:user_uuid>', methods=['GET'])
 def get_user_recommended_events(user_uuid):
     """
     GET /api/events/recommended/<user_uuid>?limit=10
@@ -203,7 +297,9 @@ def get_user_recommended_events(user_uuid):
         })
 
     return jsonify(events)
-@events_bp.route('/recommended/events/<uuid:user_uuid>', methods=['GET'])
+
+
+@events_bp.route('/events/tags/<uuid:user_uuid>', methods=['GET'])
 def recommend_events_by_user_tags(user_uuid):
     """
     GET /api/users/<user_uuid>/events/recommend-by-tags?limit=10
@@ -226,7 +322,6 @@ def recommend_events_by_user_tags(user_uuid):
     """, (str(user_uuid),))
 
     tags = [row['tag'] for row in cur.fetchall()]
-
     # If they’re not in any events yet, just return an empty list
     if not tags:
         cur.close()
