@@ -1,11 +1,11 @@
+version: 'latest'
 
 services:
   db:
-    image: postgres:latest
-    container_name: THANI_postdataQA
     build:
       context: ./
-      dockerfile: /dockerfiles/Dockerfile.setup # use this dockerfile for db
+      dockerfile: ./dockerfiles/Dockerfile.setup
+    container_name: THANI_postdataQA
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: TEMP123
@@ -24,6 +24,21 @@ services:
     networks:
       - shared_network
 
+  backend:
+    build:
+      context: ./
+      dockerfile: ./dockerfiles/Dockerfile.backend
+    container_name: THANI_backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:TEMP123@db:5432/EXPOS_THANI_WEB
+    ports:
+      - "5000:5000"
+    networks:
+      - shared_network
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: THANI_postdataQA_admin
@@ -37,25 +52,25 @@ services:
       db:
         condition: service_healthy
     networks:
-      - shared_network # maintain a shared network to ensure connections in between applications
+      - shared_network
 
-  cli: # build cli, fails to launch but we can run docker exec -it THANI_cli /bin/bash to re-run (with interactive shell)
+  cli:
     build:
       context: ./
-      dockerfile: NodeJS_CLI/Dockerfile.cli # uses this dockerfile for the CLI
+      dockerfile: ./NodeJS_CLI/Dockerfile.cli
     container_name: THANI_cli
     environment:
       POSTGRES_HOST: db
-      POSTGRES_PORT: 5434
+      POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: TEMP123
       POSTGRES_DB: EXPOS_THANI_WEB
     ports:
       - "5052:5050"
-    networks:
-      - shared_network
     stdin_open: true
     tty: true
+    networks:
+      - shared_network
 
 networks:
   shared_network:
