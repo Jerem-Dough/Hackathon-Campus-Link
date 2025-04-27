@@ -11,7 +11,6 @@ CORS(app)
 app.register_blueprint(events_bp)
 app.register_blueprint(users_bp)
 app.register_blueprint(forums_bp)
-CORS(app)
 
 def get_conn():
     """Open a new psycopg2 connection and register the vector type."""
