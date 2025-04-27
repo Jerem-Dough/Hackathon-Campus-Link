@@ -1,15 +1,11 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+const tintColorLight = '#ffff';
+const tintColorDark = '#0000';
+const thaniBlue = '#38b6ff';
 
 export default {
   light: {
     text: '#000',
-    background: '#2A7B9B',
-    gradientColors: [
-      'rgba(42,123,155,1)',
-      'rgba(87,199,133,1)',
-      'rgba(237,221,83,1)'
-    ],
+    background: '#ffff',
     tint: tintColorLight,
     tabIconDefault: '#ccc',
     tabIconSelected: tintColorLight,
@@ -21,4 +17,5 @@ export default {
     tabIconDefault: '#ccc',
     tabIconSelected: tintColorDark,
   },
+  thaniBlue,
 };

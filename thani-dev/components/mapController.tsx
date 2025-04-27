@@ -3,6 +3,7 @@ import { StyleSheet, Dimensions, ActivityIndicator, View, Text, TextInput, Image
 import MapView, { PROVIDER_DEFAULT, Marker, UrlTile } from 'react-native-maps';
 import axios from 'axios';
 import { useRouter } from 'expo-router'; 
+import Colors from '../constants/Colors'; 
 
 export default function MapController() {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -118,6 +119,7 @@ export default function MapController() {
 
         {places.map((place, index) => (
           <Marker
+            pinColor='#38b6ff'
             key={index}
             coordinate={{
               latitude: place.geometry.location.lat,
@@ -126,6 +128,7 @@ export default function MapController() {
             title={place.name}
             description={place.vicinity}
             onPress={() => setSelectedPlace(place)}
+            pinColor={selectedPlace?.place_id === place.place_id ? '#000' : '#38b6ff'}
           />
         ))}
       </MapView>
@@ -151,7 +154,7 @@ export default function MapController() {
                 style={styles.moreDetailsButton}
                 onPress={() => {
                   router.push({
-                    pathname: 'placeDetailsController',
+                    pathname: 'More Details',
                     params: {
                       placeName: selectedPlace.name,
                       address: selectedPlace.vicinity,
@@ -190,9 +193,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   searchInput: {
+    fontFamily: 'Poppins',
     fontSize: 16,
   },
   clearButton: {
+    fontFamily: 'Poppins',
     position: 'absolute',
     right: 10,
     top: '90%',
@@ -201,11 +206,13 @@ const styles = StyleSheet.create({
   },  
   map: { width: Dimensions.get('window').width, height: Dimensions.get('window').height },
   loadingOverlay: {
+    fontFamily: 'Poppins',
     position: 'absolute',
     top: 0, left: 0, width: '100%', height: '100%',
     justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', zIndex: 1,
   },
   popupContainer: {
+    fontFamily: 'Poppins',
     position: 'absolute',
     bottom: 125,
     left: 20,
@@ -220,14 +227,14 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   placeTitle: {
-    
+    fontFamily: 'Poppins',
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
     textAlign: 'center',
   },
   placeAddress: {
-    
+    fontFamily: 'Poppins',
     fontSize: 14,
     color: 'gray',
     textAlign: 'center',
@@ -249,10 +256,12 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   closeButton: {
+    fontFamily: 'Poppins',
     color: 'blue',
     fontWeight: 'bold',
   },  
   moreDetailsButton: {
+    fontFamily: 'Poppins',
     color: 'blue',
     fontWeight: 'bold',
   },
