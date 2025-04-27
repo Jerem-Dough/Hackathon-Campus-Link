@@ -7,15 +7,18 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- 2) Users table (stores user embeddings)
-CREATE TABLE IF NOT EXISTS users (
+ CREATE TABLE IF NOT EXISTS users (
     uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT,
-    interest TEXT[], -- list of things interested TEXT FORMAT
-    major TEXT, -- major is a flat list of TAG (cs/etc.)
-    campus TEXT, -- campus is flat list tag here, we can use another descript call
-    organization_id TEXT REFERENCES organization(id), -- foreign key to organization table
+    email TEXT UNIQUE,
+    password TEXT,
+    interest TEXT[],
+    major TEXT,
+    campus TEXT,
+    organization_id TEXT REFERENCES organization(id),
     embedding VECTOR(1536)
 );
+
 
 CREATE TABLE IF NOT EXISTS organization (
     id TEXT PRIMARY KEY,

@@ -9,14 +9,18 @@ import {
 import { Text } from "@/components/Themed";
 import { useState } from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useRouter } from "expo-router";
 
 export default function Signup() {
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [major, setMajor] = useState("");
   const [campus, setCampus] = useState("");
   const [organizationId, setOrganizationId] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const router = useRouter();
   const interestsArray = [
     "AI",
     "Machine Learning",
@@ -34,14 +38,16 @@ export default function Signup() {
 
   async function handleSignup() {
     const payload = {
+      name,
+      email,
+      password,
+      major,
       campus,
       interest: selectedInterests,
-      major,
-      name,
-      organization_id: organizationId,
+      organization_title: organizationId, // backend will look this up as org title
     };
-    console.log("→ Sending payload:", payload);
 
+    console.log("→ Sending payload:", payload);
     try {
       const res = await fetch(
         "http://10.5.176.13:5000/api/users/create_user/",
@@ -57,15 +63,13 @@ export default function Signup() {
 
       const data = await res.json();
       if (!res.ok) {
-        console.error("Server returned error:", res.status, data);
         const msg =
           (data as any).detail || (data as any).message || JSON.stringify(data);
-        Alert.alert("Error Creating User", msg);
-        return;
+        return Alert.alert("Error Creating User", msg);
       }
-
-      console.log("Success response:", data);
+      router.push("/home");
       Alert.alert("Success", "User created successfully!");
+      console.log("Success response:", data);
     } catch (e) {
       console.error("Network or parsing error:", e);
       Alert.alert(
@@ -87,6 +91,21 @@ export default function Signup() {
       />
       <TextInput
         style={styles.input}
+        placeholder="Email"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <TextInput
+        style={styles.input}
         placeholder="Major"
         value={major}
         onChangeText={setMajor}
@@ -99,7 +118,7 @@ export default function Signup() {
       />
       <TextInput
         style={styles.input}
-        placeholder="Organization ID"
+        placeholder="Organization ID (title)"
         value={organizationId}
         onChangeText={setOrganizationId}
       />

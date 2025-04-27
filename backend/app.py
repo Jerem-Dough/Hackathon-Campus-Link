@@ -12,6 +12,7 @@ from flasgger import Swagger
 from routes.events import events_bp
 
 app = Flask(__name__)
+
 CORS(app, resources={r"/api/*": {"origins": ["http://localhost:8081"]}})
 if events_bp is None:
     print("pls ")
