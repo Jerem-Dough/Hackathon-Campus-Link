@@ -3,7 +3,7 @@ import requests
 from ics import Calendar
 import uuid
 from icalendar import Calendar
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 import psycopg2
 
@@ -23,15 +23,16 @@ def get_db_connection():
     )
     return conn
 
-load_dotenv()
+api_key = "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"
+client = OpenAI(api_key=api_key)
 
 def create_embedding(text) -> list[float]:
 
 
-    response = openai.embeddings.create(
-        input=text,
-        model="text-embedding-3-small"
-    )
+    response = client.embeddings.create(
+                input=text,
+                model="text-embedding-3-small"
+        )
     # print(response)
     embedding = response.data[0].embedding
     return embedding
@@ -46,6 +47,9 @@ def add_ics_to_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     
+    event_count = 0
+    print("\n=== Starting Event Import ===")
+    
     for component in cal.walk():
         if component.name == "VEVENT":
             # Extract fields safely
@@ -54,31 +58,45 @@ def add_ics_to_db():
             location = "University of Denver"  # Default location
             description = str(component.get('description')) if component.get('description') else None
             
+            # Print event details before processing
+            print(f"\nProcessing Event #{event_count + 1}")
+            print(f"Title: {title}")
+            print(f"Date: {dtstart}")
+            print(f"Location: {location}")
+            
             # Custom fields
-            image = "./assest/default.png"# Normally not in ICS files unless hidden in description/url
-
-            # tags not included because ics file does not have tags
+            image = "./assest/default.png"
             embedding = create_embedding(title + " " + description) if description else create_embedding(title)
             embedding = str(embedding)
-
             event_id = str(uuid.uuid4())
             tags = []
 
+            try:
+                insert_query = """
+                    INSERT INTO events (id, title, date, location, image, description, tags, embedding)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_query, (
+                    event_id,
+                    title,
+                    dtstart,
+                    location,
+                    image,
+                    description,
+                    tags,
+                    embedding
+                ))
+                event_count += 1
+                print(f"✓ Successfully added event: {title}")
+            except Exception as e:
+                print(f"✗ Failed to add event: {title}")
+                print(f"Error: {str(e)}")
 
-            insert_query = """
-                INSERT INTO events (id, title, date, location, image, description, tags, embedding)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(insert_query, (
-                event_id,
-                title,
-                dtstart,
-                location,
-                image,
-                description,
-                tags,
-                embedding
-            ))
+    conn.commit()
+    print(f"\n=== Import Complete ===")
+    print(f"Total events processed: {event_count}")
+    cursor.close()
+    conn.close()
         
 
 
