@@ -32,6 +32,7 @@ export default function EventsScreen() {
   const textColor = Colors[colorScheme].text;
   const borderColor = Colors[colorScheme].tabIconDefault;
   const backgroundColor = Colors[colorScheme].background;
+  const backgroundColor = Colors[colorScheme].background;
 
   const [searchText, setSearchText] = useState("");
   const [events, setEvents] = useState<Event[]>([]);
@@ -70,7 +71,10 @@ export default function EventsScreen() {
         );
   
         setEvents(uniqueEvents);
+  
+        setEvents(uniqueEvents);
       } catch (err) {
+        console.error('Fetch events error:', err);
         console.error('Fetch events error:', err);
       }
     })();
@@ -104,6 +108,11 @@ export default function EventsScreen() {
           height: 180,
           borderRadius: 10,
         }}
+        style={{
+          width: '100%',
+          height: 180,
+          borderRadius: 10,
+        }}
         resizeMode="cover"
       />
       <Text style={[styles.eventTitle, { color: textColor }]} numberOfLines={2}>
@@ -118,10 +127,16 @@ export default function EventsScreen() {
         ? item.description.slice(0, 100) + "…"
         : item.description;
 
+
     return (
       <View style={[styles.card, { borderColor }]}>
         <Image
           source={item.image}
+          style={{
+            width: '100%',
+            height: 150,
+            borderRadius: 10,
+          }}
           style={{
             width: '100%',
             height: 150,
@@ -209,8 +224,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginVertical: 8,
   },
+  },
   horizontalList: {
     paddingBottom: 12,
+  },
   },
   horizontalCard: {
     alignItems: "center",
@@ -245,5 +262,6 @@ const styles = StyleSheet.create({
   eventDetails: {
     fontFamily: "Poppins",
     fontSize: 13,
+  },
   },
 });
