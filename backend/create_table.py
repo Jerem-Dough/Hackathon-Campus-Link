@@ -2,26 +2,26 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from db import get_db_connection
 
-# def create_extensions():
-#     conn = get_db_connection()
-#     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-#     cursor = conn.cursor()
+def create_extensions():
+     conn = get_db_connection()
+     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+     cursor = conn.cursor()
     
-#     extensions = [
-#         "uuid-ossp",
-#         "pgcrypto",
-#         "vector"
-#     ]
-    
-#     try:
-#         for extension in extensions:
-#             cursor.execute(f"CREATE EXTENSION IF NOT EXISTS {extension};")
-#         print("Extensions created successfully")
-#     except Exception as e:
-#         print(f"Error creating extensions: {str(e)}")
-#     finally:
-#         cursor.close()
-#         conn.close()
+     extensions = [
+         "uuid-ossp",
+         "pgcrypto",
+         "vector"
+     ]
+   
+     try:
+        for extension in extensions:
+            cursor.execute(f'CREATE EXTENSION IF NOT EXISTS "{extension}";')
+        print("Extensions created successfully")
+     except Exception as e:
+         print(f"Error creating extensions: {str(e)}")
+     finally:
+         cursor.close()
+         conn.close()
 
 def create_tables():
     conn = get_db_connection()
@@ -137,7 +137,7 @@ def create_tables():
         conn.close()
 
 def main():
-    # create_extensions()
+    create_extensions()
     create_tables()
 
 if __name__ == "__main__":
