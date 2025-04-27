@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, Button, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, KeyboardAvoidingView, Platform, Button, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -68,6 +68,11 @@ export default function PlaceDetailsScreen() {
   };
 
   return (
+    <KeyboardAvoidingView
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    style={{ flex: 1 }}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // adjust if needed
+    >
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>{placeName}</Text>
       <Text style={styles.address}>{address}</Text>
@@ -121,6 +126,7 @@ export default function PlaceDetailsScreen() {
 
       <Button title="Post Review" onPress={addComment} />
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
