@@ -30,6 +30,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
+    fontFamily: 'Poppins',
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -38,6 +39,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   linkText: {
+    fontFamily: 'Poppins',
     fontSize: 14,
     color: '#2e78b7',
   },

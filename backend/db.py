@@ -1,11 +1,13 @@
 import psycopg2
 import os
 
-DB_HOST = os.getenv('DB_HOST', 'localhost')
-DB_PORT = os.getenv('DB_PORT', '5434')
-DB_NAME = os.getenv('DB_NAME', 'EXPOS_THANI_WEB')
-DB_USER = os.getenv('DB_USER', 'postgres')
-DB_PASSWORD = os.getenv('DB_PASSWORD', 'TEMP123')
+
+
+DB_HOST = "localhost"
+DB_PORT = 5432
+DB_NAME = "mydatabase"
+DB_USER = "myuser"
+DB_PASSWORD = "mypassword"
 
 def get_db_connection():
     conn = psycopg2.connect(
@@ -16,3 +18,14 @@ def get_db_connection():
         password=DB_PASSWORD
     )
     return conn
+
+
+
+
+def insert_event():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO events (event_name) VALUES (%s)", ("Test Event",))
+    conn.commit()
+    cursor.close()
+    conn.close()
