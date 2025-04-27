@@ -8,3 +8,9 @@ Thani (pronounced Than - eye) is a mobile application that connects students acr
 * An events tab that shows current events in nearby universities to allow students for the chance to branch out and try new things.
 
 ## Technology Used
+* React Native
+* Node.js
+* Expo Go
+* Firebase
+* Docker
+* SQL
