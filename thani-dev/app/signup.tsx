@@ -7,12 +7,21 @@ import { StyleSheet, TextInput, Button, Alert} from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useState } from 'react';
 
-export default function Login() {
+
+const interests = ['🤖AI', '🎮Gaming', '🍳Cooking', '🎨Art', '🎵Music', '	🏋️‍♂️Fitness'];
+
+export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPass] = useState('');
   const [name, setName] = useState('');
+  const [major, setMajor] = useState('');
+  const [school, setSchool] = useState('');
+  const [interest, setInterests] = useState<string[]>([]);
   const router = useRouter();
 
+  function pickInterests(interest:string) {
+
+  }
   async function handleLogin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -39,12 +48,24 @@ export default function Login() {
 
   return (
       <View style={styles.container}>
-        <Text style={styles.title}>Login</Text>
+        <Text style={styles.title}>Sign Up</Text>
         <TextInput 
           style={styles.input}
           onChangeText={setEmail}
           placeholder='example@du.edu'
           value={email}>
+        </TextInput>
+        <TextInput 
+          style={styles.input}
+          onChangeText={setPass}
+          value={password}
+          placeholder='password'>
+        </TextInput>
+        <TextInput 
+          style={styles.input}
+          onChangeText={setName}
+          value={name}
+          placeholder='John'>
         </TextInput>
         <TextInput 
           style={styles.input}
