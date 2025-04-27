@@ -1,19 +1,20 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   FlatList,
   TextInput,
   Image,
   SafeAreaView,
-  Dimensions,
   ScrollView,
+  Dimensions,
+  View,
   ViewStyle,
-} from "react-native";
-import { Text, View } from "@/components/Themed";
-import Colors from "@/constants/Colors";
-import { useColorScheme } from "@/components/useColorScheme";
+} from 'react-native';
+import { Text } from '@/components/Themed';
+import Colors from '@/constants/Colors';
+import { useColorScheme } from '@/components/useColorScheme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const H_CARD_WIDTH = SCREEN_WIDTH * 0.7;
 const H_CARD_MARGIN = 15;
 
@@ -27,23 +28,24 @@ interface Event {
 }
 
 export default function EventsScreen() {
-  const colorScheme = useColorScheme() ?? "light";
+  const colorScheme = useColorScheme() ?? 'light';
   const placeholderColor = Colors[colorScheme].tabIconDefault;
   const textColor = Colors[colorScheme].text;
   const borderColor = Colors[colorScheme].tabIconDefault;
 
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
   const [events, setEvents] = useState<Event[]>([]);
 
+  // ─────────────────────────────────── Fetch events ──────────────
   useEffect(() => {
     (async () => {
       try {
-        const resp = await fetch("http://10.5.176.13:5000/api/events/");
+        const resp = await fetch('http://10.5.176.13:5000/api/events/');
         const data = await resp.json();
-        const mapped = data.map((e: any) => ({
+        const mapped: Event[] = data.map((e: any) => ({
           ...e,
-          id: e.id ?? `event-${Math.random().toString(36).substr(2, 9)}`,
-          image: require("../../assets/images/human.png"),
+          id: e.id ?? `evt-${Math.random().toString(36).slice(2, 9)}`,
+          image: require('../../assets/images/human.png'),
         }));
         const unique = mapped.filter(
           (e, i, arr) => i === arr.findIndex((x) => x.id === e.id)
@@ -55,21 +57,21 @@ export default function EventsScreen() {
     })();
   }, []);
 
-  const filtered = useMemo(
-    () =>
-      events.filter((e) => {
-        const q = searchText.toLowerCase();
-        return (
-          e.title.toLowerCase().includes(q) ||
-          e.location.toLowerCase().includes(q) ||
-          e.description.toLowerCase().includes(q)
-        );
-      }),
-    [searchText, events]
-  );
+  // ─────────────────────────────────── Filtering ─────────────────
+  const filtered = useMemo(() => {
+    const q = searchText.toLowerCase();
+    return events.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.location.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q)
+    );
+  }, [searchText, events]);
 
+  // ────────────────────────────── Renderers ──────────────────────
   const renderHorizontal = ({ item }: { item: Event }) => (
     <View
+      key={`h-${item.id}`}
       style={[
         styles.card,
         styles.horizontalCard,
@@ -87,13 +89,13 @@ export default function EventsScreen() {
     </View>
   );
 
-  const renderVertical = ({ item }: { item: Event }) => {
+  const renderVertical = (item: Event) => {
     const shortDesc =
       item.description.length > 100
-        ? item.description.slice(0, 100) + "…"
+        ? `${item.description.slice(0, 100)}…`
         : item.description;
     return (
-      <View style={[styles.card, { borderColor }]}>
+      <View key={`v-${item.id}`} style={[styles.card, { borderColor }]}>
         <Image
           source={item.image}
           style={[styles.eventImage, { aspectRatio: 16 / 9 }]}
@@ -106,7 +108,7 @@ export default function EventsScreen() {
           style={[styles.eventDescription, { color: placeholderColor }]}
           numberOfLines={3}
         >
-          {shortDesc.replace(/https?:\/\/[^\s]+/g, "")}
+          {shortDesc.replace(/https?:\/\/[^\s]+/g, '')}
         </Text>
         <Text style={[styles.eventDetails, { color: placeholderColor }]}>
           {item.date} @ {item.location}
@@ -115,51 +117,48 @@ export default function EventsScreen() {
     );
   };
 
+  // ──────────────────────────────── Return ───────────────────────
   return (
-    <ScrollView
-      style={styles.container}
-      lightColor={Colors.light.background}
-      darkColor={Colors.dark.background}
-    >
-      <TextInput
-        placeholder="Search events..."
-        placeholderTextColor={placeholderColor}
-        value={searchText}
-        onChangeText={setSearchText}
-        style={[
-          styles.searchBar,
-          { borderColor, color: textColor, borderWidth: 1 },
-        ]}
-      />
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Search bar */}
+        <TextInput
+          placeholder="Search events..."
+          placeholderTextColor={placeholderColor}
+          value={searchText}
+          onChangeText={setSearchText}
+          style={[
+            styles.searchBar,
+            { borderColor, color: textColor, borderWidth: 1 },
+          ]}
+        />
 
-      <Text style={styles.sectionTitle}>Upcoming Events</Text>
-      <FlatList
-        data={filtered}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.horizontalList}
-        keyExtractor={(i) => i.id}
-        renderItem={renderHorizontal}
-        decelerationRate="fast"
-        snapToInterval={H_CARD_WIDTH + H_CARD_MARGIN}
-        snapToAlignment="start"
-      />
+        {/* Horizontal carousel */}
+        <Text style={styles.sectionTitle}>Upcoming Events</Text>
+        <FlatList
+          data={filtered}
+          horizontal
+          keyExtractor={(i) => i.id}
+          renderItem={renderHorizontal}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+          decelerationRate="fast"
+          snapToInterval={H_CARD_WIDTH + H_CARD_MARGIN}
+          snapToAlignment="start"
+        />
 
-      <Text style={styles.sectionTitle}>All Events</Text>
-      <FlatList
-        data={filtered}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        keyExtractor={(i) => i.id}
-        renderItem={renderVertical}
-        showsVerticalScrollIndicator={false}
-        // ensure it fills and scrolls properly
-        ListFooterComponent={<View style={{ height: 50 }} />}
-      />
-    </ScrollView>
+        {/* Vertical list (simple map to avoid nested FlatList) */}
+        <Text style={styles.sectionTitle}>All Events</Text>
+        {filtered.map(renderVertical)}
+
+        {/* Spacer at bottom */}
+        <View style={{ height: 60 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
+// ─────────────────────────────────── Styles ──────────────────────
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -167,59 +166,53 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   } as ViewStyle,
   searchBar: {
-    fontFamily: "Poppins",
+    fontFamily: 'Poppins',
     height: 40,
     borderRadius: 8,
     paddingHorizontal: 12,
     marginBottom: 16,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   } as ViewStyle,
   sectionTitle: {
-    fontFamily: "Poppins",
+    fontFamily: 'Poppins',
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginVertical: 8,
   } as ViewStyle,
   horizontalList: {
     paddingBottom: 12,
   } as ViewStyle,
   horizontalCard: {
-    alignItems: "center",
-  } as ViewStyle,
-  list: {
-    flex: 1,
-  } as ViewStyle,
-  listContent: {
-    paddingBottom: 16,
+    alignItems: 'center',
   } as ViewStyle,
   card: {
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 10,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
     padding: 12,
     marginBottom: 16,
-    alignItems: "center",
+    alignItems: 'center',
   } as ViewStyle,
   eventImage: {
-    width: "100%",
+    width: '100%',
     borderRadius: 8,
     marginBottom: 8,
   },
   eventTitle: {
-    fontFamily: "Poppins",
+    fontFamily: 'Poppins',
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 6,
-    textAlign: "center",
+    textAlign: 'center',
   } as ViewStyle,
   eventDescription: {
-    fontFamily: "Poppins",
+    fontFamily: 'Poppins',
     fontSize: 14,
     marginBottom: 6,
-    textAlign: "center",
+    textAlign: 'center',
   } as ViewStyle,
   eventDetails: {
-    fontFamily: "Poppins",
+    fontFamily: 'Poppins',
     fontSize: 13,
   } as ViewStyle,
 });
