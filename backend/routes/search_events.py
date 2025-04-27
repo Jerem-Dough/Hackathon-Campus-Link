@@ -4,8 +4,8 @@ import psycopg2.extras
 from flask import Blueprint, jsonify, request
 from pgvector.psycopg2 import register_vector
 from sentence_transformers import SentenceTransformer
-
-search_bp = Blueprint('search', __name__, url_prefix='/api/search')
+from events import events_bp
+# events_bp = Blueprint('search', __name__, url_prefix='/api/search')
 
 # Load the embedding model (e.g., SentenceTransformer)
 embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -21,7 +21,7 @@ def get_db_connection():
     register_vector(conn)
     return conn
 
-@search_bp.route('/events', methods=['POST'])
+@events_bp.route('/events', methods=['POST'])
 def search_events_by_embedding():
     """
     POST /api/search/events

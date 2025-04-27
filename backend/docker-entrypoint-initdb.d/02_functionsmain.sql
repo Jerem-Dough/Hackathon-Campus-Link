@@ -5,9 +5,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ENABLE pgvector:
 CREATE EXTENSION vector;
-
-
-
 -- A) Aggregate to sum vectors
 CREATE AGGREGATE IF NOT EXISTS vector_sum(VECTOR) (
   SFUNC    = vector_add,

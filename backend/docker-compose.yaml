@@ -18,9 +18,9 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./var/lib/postgresql/import:/var/lib/postgresql/import
+      - ./import:/var/lib/postgresql/import
     networks:
       - shared_network
 
@@ -46,8 +46,11 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@THANI.com
       PGADMIN_DEFAULT_PASSWORD: password
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
       - "5051:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
     depends_on:
       db:
         condition: service_healthy
@@ -75,3 +78,7 @@ services:
 networks:
   shared_network:
     name: custom_network
+
+volumes:
+  postgres_data:
+  pgadmin_data:

@@ -5,8 +5,8 @@ import psycopg2
 import psycopg2.extras
 from flask import Blueprint, jsonify, request
 from pgvector.psycopg2 import register_vector
-
-orgs_bp = Blueprint('organizations', __name__, url_prefix='/api/organizations')
+from events import events_bp
+# events_bp = Blueprint('organizations', __name__, url_prefix='/api/organizations')
 
 def get_db_connection():
     conn = psycopg2.connect(
@@ -18,8 +18,7 @@ def get_db_connection():
     register_vector(conn)
     return conn
 
-
-@orgs_bp.route('/recommended/orgs/<uuid:user_uuid>', methods=['GET'])
+@events_bp.route('/recommended/orgs/<uuid:user_uuid>', methods=['GET'])
 def recommend_organizations_for_user(user_uuid):
     """
     GET /api/organizations/orgs/recommended/<user_uuid>?limit=5

@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify
 from db import get_db_connection
+from events import events_bp
+events_bp = Blueprint('forums', __name__, url_prefix='/api/forums')
 
-forums_bp = Blueprint('forums', __name__, url_prefix='/api/forums')
-
-@forums_bp.route('/<forum_id>/posts', methods=['GET'])
+@events_bp.route('/<forum_id>/posts', methods=['GET'])
 def get_forum_posts(forum_id):
     conn = get_db_connection()
     cursor = conn.cursor()

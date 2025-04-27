@@ -4,8 +4,8 @@ import psycopg2
 import psycopg2.extras
 from flask import Blueprint, jsonify, request
 from pgvector.psycopg2 import register_vector
+from events import events_bp
 
-events_bp = Blueprint('events', __name__, url_prefix='/api/events')
 
 def get_db_connection():
     conn = psycopg2.connect(

@@ -5,8 +5,8 @@ import os
 import psycopg2
 import psycopg2.extras
 from pgvector.psycopg2 import register_vector
+from events import events_bp
 
-users_bp = Blueprint('users', __name__, url_prefix='/api/users')
 
 def get_db_connection():
     conn = psycopg2.connect(
@@ -18,7 +18,7 @@ def get_db_connection():
     register_vector(conn)
     return conn
 
-@users_bp.route('/recommended/events/<uuid:user_uuid>', methods=['GET'])
+@events_bp.route('/recommended/events/<uuid:user_uuid>', methods=['GET'])
 def recommend_events_by_user_tags(user_uuid):
     """
     GET /api/users/<user_uuid>/events/recommend-by-tags?limit=10
