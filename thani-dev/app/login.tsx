@@ -16,24 +16,26 @@ export default function Login() {
   async function handleLogin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/home")
+      router.push("/home");
       Alert.alert('Success', 'Logged in!');
-      console.log("logged in!")
+      console.log("logged in!");
 
     } catch (error: unknown){
-      if(error instanceof Error) {
-        try{
-          await createUserWithEmailAndPassword(auth, email, password);
-          Alert.alert('Signing Up')
+       if (typeof error === 'object' && error !== null && 'code' in error) {
+    const err = error as { code: string; message: string };
 
-        } catch(createError: unknown) {
-          console.error(createError)
-          Alert.alert('User Not found')
-
-        }
-      }else{
-        console.error(error);
-      }
+    if (err.code === 'auth/user-not-found') {
+      Alert.alert('Account not found', 'Redirecting to signup...');
+      router.replace('./signup');
+    } else if (err.code === 'auth/wrong-password') {
+      Alert.alert('Wrong Password', 'Please try again.');
+    } else {
+      Alert.alert('Login Error', err.message);
+    }
+  } else {
+    console.error(error);
+    Alert.alert('Login Error', 'An unknown error occurred.');
+  }
     }
   }
 
@@ -52,7 +54,8 @@ export default function Login() {
           value={password}
           placeholder='password'>
         </TextInput>
-        <Button title='Login/Sign Up' onPress={handleLogin} />
+        <Button title='Login' onPress={handleLogin} />
+        <Button title='Sign Up' onPress={() => router.push('./signup')} />
 
       </View>
   );

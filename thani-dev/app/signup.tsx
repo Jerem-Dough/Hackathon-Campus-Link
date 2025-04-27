@@ -22,28 +22,33 @@ export default function Signup() {
   function pickInterests(interest:string) {
 
   }
-  async function handleLogin() {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/home")
-      Alert.alert('Success', 'Logged in!');
-      console.log("logged in!")
-
-    } catch (error: unknown){
-      if(error instanceof Error) {
+  async function handleSignup() {
         try{
-          await createUserWithEmailAndPassword(auth, email, password);
+          const userCredentials =  await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredentials.user;
+          if (user) {
+
+            await fetch('https://your-backend-api.com/api/users', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                name: name,
+                major: major,
+                school: school,
+                interests: interests,
+                createdAt: new Date().toISOString(),
+              }),
+          });
           Alert.alert('Signing Up')
+        }
 
         } catch(createError: unknown) {
           console.error(createError)
           Alert.alert('User Not found')
 
         }
-      }else{
-        console.error(error);
-      }
-    }
   }
 
   return (
@@ -69,11 +74,18 @@ export default function Signup() {
         </TextInput>
         <TextInput 
           style={styles.input}
-          onChangeText={setPass}
-          value={password}
-          placeholder='password'>
+          onChangeText={setMajor}
+          value={major}
+          placeholder='Computer Science'>
         </TextInput>
-        <Button title='Login/Sign Up' onPress={handleLogin} />
+        <TextInput 
+          style={styles.input}
+          onChangeText={setSchool}
+          value={school}
+          placeholder='University of Denver'>
+        </TextInput>
+        
+        <Button title='Sign Up' onPress={handleSignup} />
 
       </View>
   );
