@@ -1,46 +1,51 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from db import get_db_connection
+from datapipeline import get_db_connection
 import openai
 from dotenv import load_dotenv
+import os
 # Load environment variables from a .env file
 load_dotenv()
-
+# Set the OpenAI API key as an environment variable
 # Set OpenAI API key from environment variable
-# def create_extensions():
-#     conn = get_db_connection()
-#     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-#     cursor = conn.cursor()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+def create_extensions():
+    conn = get_db_connection()
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cursor = conn.cursor()
     
-#     extensions = [
-#         "uuid-ossp",
-#         "pgcrypto",
-#         "vector"
-#     ]
+    extensions = [
+        "uuid-ossp",
+        "pgcrypto",
+        "vector"
+    ]
     
-#     try:
-#         for extension in extensions:
-#             cursor.execute(f"CREATE EXTENSION IF NOT EXISTS {extension};")
-#         print("Extensions created successfully")
-#     except Exception as e:
-#         print(f"Error creating extensions: {str(e)}")
-#     finally:
-#         cursor.close()
-#         conn.close()
+    try:
+        for extension in extensions:
+            cursor.execute(f"CREATE EXTENSION IF NOT EXISTS {extension};")
+        print("Extensions created successfully")
+    except Exception as e:
+        print(f"Error creating extensions: {str(e)}")
+    finally:
+        cursor.close()
+        conn.close()
 
 def create_functions():
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
-        # A) Aggregate to sum vectors
-        cursor.execute("""
-        CREATE AGGREGATE IF NOT EXISTS vector_sum(VECTOR) (
-          SFUNC    = vector_add,
-          STYPE    = VECTOR,
-          INITCOND = '[' || array_to_string(array_fill('0'::float8, ARRAY[1536]), ',') || ']'
-        );
-        """)
+        # Ensure pgvector extension is enabled
+        # cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        
+        # # A) Aggregate to sum vectors
+        # cursor.execute("""
+        # CREATE AGGREGATE IF NOT EXISTS vector_sum(VECTOR) (
+        #   SFUNC    = vector_add,
+        #   STYPE    = VECTOR,
+        #   INITCOND = '[' || array_to_string(array_fill('0'::float8, ARRAY[1536]), ',') || ']'
+        # );
+        # """)
 
         # B) Compute average embedding over a set of tags
         cursor.execute("""
@@ -158,6 +163,11 @@ def create_tables():
     
     try:
         # Create organization table
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS organization (
                 id TEXT PRIMARY KEY,
@@ -335,8 +345,8 @@ def add_dummy_organizations():
         conn.close()
 
 def main():
-    # create_extensions()
-    # create_tables()
+    create_extensions()
+    create_tables()
     add_dummy_organizations()  # Add this line to create dummy data
     print("making SQL functions..,..")
     create_functions()
