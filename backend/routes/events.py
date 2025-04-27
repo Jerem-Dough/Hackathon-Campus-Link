@@ -83,13 +83,12 @@ def get_all_events():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cursor.execute(
-            "SELECT id, title, date, location, description FROM events WHERE date > Now() ORDER BY date ASC LIMIT 100;"
+            "SELECT id, title, date, location, description FROM events WHERE date > Now() ORDER BY date ASC LIMIT 500;"
         )
         rows = cursor.fetchall()
         conn.close()
         events = []
 
-        print(rows[0])
         i = 0
         unq_titles = set()
         for row in rows:

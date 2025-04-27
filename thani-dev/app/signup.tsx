@@ -1,118 +1,246 @@
-import { Link, Redirect, Stack } from 'expo-router';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseconfig';
-import { useRouter } from 'expo-router';
-import { StyleSheet, TextInput, Button, Alert} from 'react-native';
-
-import { Text, View } from '@/components/Themed';
-import { useState } from 'react';
-
-
-const interests = ['🤖AI', '🎮Gaming', '🍳Cooking', '🎨Art', '🎵Music', '	🏋️‍♂️Fitness'];
+import {
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  View,
+} from "react-native";
+import { Text } from "@/components/Themed";
+import { useState } from "react";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useRouter } from "expo-router";
 
 export default function Signup() {
-  const [email, setEmail] = useState('');
-  const [password, setPass] = useState('');
-  const [name, setName] = useState('');
-  const [major, setMajor] = useState('');
-  const [school, setSchool] = useState('');
-  const [interest, setInterests] = useState<string[]>([]);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [major, setMajor] = useState("");
+  const [campus, setCampus] = useState("");
+  const [organizationId, setOrganizationId] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const router = useRouter();
+  const interestsArray = [
+    "AI",
+    "Machine Learning",
+    "Gaming",
+    "Art",
+    "Music",
+    "Fitness",
+  ];
 
-  function pickInterests(interest:string) {
-
+  function toggleInterest(item: string) {
+    setSelectedInterests((prev) =>
+      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+    );
   }
+
   async function handleSignup() {
-        try{
-          const userCredentials =  await createUserWithEmailAndPassword(auth, email, password);
-          const user = userCredentials.user;
-          if (user) {
+    const payload = {
+      name,
+      email,
+      password,
+      major,
+      campus,
+      interest: selectedInterests,
+      organization_title: organizationId, // backend will look this up as org title
+    };
 
-            await fetch('https://your-backend-api.com/api/users', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                uid: user.uid,
-                email: user.email,
-                name: name,
-                major: major,
-                school: school,
-                interests: interests,
-                createdAt: new Date().toISOString(),
-              }),
-          });
-          Alert.alert('Signing Up')
+    console.log("→ Sending payload:", payload);
+    try {
+      const res = await fetch(
+        "http://10.5.176.13:5000/api/users/create_user/",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         }
+      );
 
-        } catch(createError: unknown) {
-          console.error(createError)
-          Alert.alert('User Not found')
-
-        }
+      const data = await res.json();
+      if (!res.ok) {
+        const msg =
+          (data as any).detail || (data as any).message || JSON.stringify(data);
+        return Alert.alert("Error Creating User", msg);
+      }
+      router.push("/home");
+      Alert.alert("Success", "User created successfully!");
+      console.log("Success response:", data);
+    } catch (e) {
+      console.error("Network or parsing error:", e);
+      Alert.alert(
+        "Error",
+        "Unable to reach server. Please check your network and try again."
+      );
+    }
   }
 
   return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Sign Up</Text>
-        <TextInput 
-          style={styles.input}
-          onChangeText={setEmail}
-          placeholder='example@du.edu'
-          value={email}>
-        </TextInput>
-        <TextInput 
-          style={styles.input}
-          onChangeText={setPass}
-          value={password}
-          placeholder='password'>
-        </TextInput>
-        <TextInput 
-          style={styles.input}
-          onChangeText={setName}
-          value={name}
-          placeholder='John'>
-        </TextInput>
-        <TextInput 
-          style={styles.input}
-          onChangeText={setMajor}
-          value={major}
-          placeholder='Computer Science'>
-        </TextInput>
-        <TextInput 
-          style={styles.input}
-          onChangeText={setSchool}
-          value={school}
-          placeholder='University of Denver'>
-        </TextInput>
-        
-        <Button title='Sign Up' onPress={handleSignup} />
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Sign Up</Text>
 
-      </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Major"
+        value={major}
+        onChangeText={setMajor}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Campus"
+        value={campus}
+        onChangeText={setCampus}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Organization ID (title)"
+        value={organizationId}
+        onChangeText={setOrganizationId}
+      />
+
+      {/* Interests dropdown */}
+      <TouchableOpacity
+        style={styles.dropdownHeader}
+        onPress={() => setDropdownOpen((o) => !o)}
+      >
+        <Text style={styles.dropdownHeaderText}>Select Interests</Text>
+        <FontAwesome
+          name={dropdownOpen ? "minus-circle" : "plus-circle"}
+          size={24}
+          color="#333"
+        />
+      </TouchableOpacity>
+      {dropdownOpen && (
+        <View style={styles.interestsContainer}>
+          {interestsArray.map((item) => (
+            <TouchableOpacity
+              key={item}
+              style={[
+                styles.interestButton,
+                selectedInterests.includes(item) &&
+                  styles.interestButtonSelected,
+              ]}
+              onPress={() => toggleInterest(item)}
+            >
+              <Text
+                style={[
+                  styles.interestText,
+                  selectedInterests.includes(item) &&
+                    styles.interestTextSelected,
+                ]}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* Rounded Sign Up */}
+      <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+        <Text style={styles.signupButtonText}>Sign Up</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     padding: 20,
+    paddingBottom: 60,
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
+    fontSize: 24,
+    fontWeight: "bold",
+    alignSelf: "center",
+    marginBottom: 24,
   },
   input: {
-    borderBottomWidth: 1.5,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    fontSize: 16,
+    backgroundColor: "#fafafa",
   },
-  linkText: {
+  dropdownHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#aaa",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  dropdownHeaderText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  interestsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 20,
+  },
+  interestButton: {
+    borderWidth: 1,
+    borderColor: "#aaa",
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    margin: 4,
+  },
+  interestButtonSelected: {
+    backgroundColor: "#2e78b7",
+    borderColor: "#2e78b7",
+  },
+  interestText: {
     fontSize: 14,
-    color: '#2e78b7',
+    color: "#333",
+  },
+  interestTextSelected: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  signupButton: {
+    backgroundColor: "#2e78b7",
+    paddingVertical: 14,
+    borderRadius: 25,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  signupButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
