@@ -6,7 +6,6 @@ from icalendar import Calendar
 import openai
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 def create_embedding(text) -> list[float]:
