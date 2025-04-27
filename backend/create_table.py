@@ -1,27 +1,32 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from db import get_db_connection
+import openai
+from dotenv import load_dotenv
+# Load environment variables from a .env file
+load_dotenv()
 
-def create_extensions():
-     conn = get_db_connection()
-     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-     cursor = conn.cursor()
+# Set OpenAI API key from environment variable
+# def create_extensions():
+#     conn = get_db_connection()
+#     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+#     cursor = conn.cursor()
     
-     extensions = [
-         "uuid-ossp",
-         "pgcrypto",
-         "vector"
-     ]
-   
-     try:
-        for extension in extensions:
-            cursor.execute(f'CREATE EXTENSION IF NOT EXISTS "{extension}";')
-        print("Extensions created successfully")
-     except Exception as e:
-         print(f"Error creating extensions: {str(e)}")
-     finally:
-         cursor.close()
-         conn.close()
+#     extensions = [
+#         "uuid-ossp",
+#         "pgcrypto",
+#         "vector"
+#     ]
+    
+#     try:
+#         for extension in extensions:
+#             cursor.execute(f"CREATE EXTENSION IF NOT EXISTS {extension};")
+#         print("Extensions created successfully")
+#     except Exception as e:
+#         print(f"Error creating extensions: {str(e)}")
+#     finally:
+#         cursor.close()
+#         conn.close()
 
 def create_functions():
     conn = get_db_connection()
@@ -260,9 +265,79 @@ def create_tables():
         cursor.close()
         conn.close()
 
+def add_dummy_organizations():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # List of dummy organizations
+        organizations = [
+            {
+                "id": "org_cs_club",
+                "title": "Computer Science Club",
+                "location": "University of Denver",
+                "image": "assets/orgs/cs_club.png",
+                "description": "A community of computer science enthusiasts",
+                "tags": ["programming", "technology", "computer science"],
+            },
+            {
+                "id": "org_ai_society",
+                "title": "AI Society",
+                "location": "University of Denver",
+                "image": "assets/orgs/ai_society.png",
+                "description": "Exploring the frontiers of artificial intelligence",
+                "tags": ["AI", "machine learning", "data science"],
+            },
+            {
+                "id": "org_robotics",
+                "title": "Robotics Club",
+                "location": "University of Denver",
+                "image": "assets/orgs/robotics.png",
+                "description": "Building and programming robots",
+                "tags": ["robotics", "engineering", "programming"],
+            }
+        ]
+
+        # Insert organizations
+        for org in organizations:
+            # Create embedding from organization data
+            embedding_text = f"{org['title']} {org['description']} {' '.join(org['tags'])}"
+            response = openai.embeddings.create(
+                input=embedding_text,
+                model="text-embedding-3-small"
+            )
+            embedding = response.data[0].embedding
+
+            query = """
+                INSERT INTO organization (id, title, location, image, description, tags, embedding)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO NOTHING;
+            """
+            
+            cursor.execute(query, (
+                org["id"],
+                org["title"],
+                org["location"],
+                org["image"],
+                org["description"],
+                org["tags"],
+                embedding
+            ))
+        
+        conn.commit()
+        print("Dummy organizations added successfully")
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Error adding dummy organizations: {str(e)}")
+    finally:
+        cursor.close()
+        conn.close()
+
 def main():
-    create_extensions()
-    create_tables()
+    # create_extensions()
+    # create_tables()
+    add_dummy_organizations()  # Add this line to create dummy data
     print("making SQL functions..,..")
     create_functions()
 
