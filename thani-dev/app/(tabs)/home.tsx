@@ -31,6 +31,7 @@ export default function EventsScreen() {
   const placeholderColor = Colors[colorScheme].tabIconDefault;
   const textColor = Colors[colorScheme].text;
   const borderColor = Colors[colorScheme].tabIconDefault;
+  const backgroundColor = Colors[colorScheme].background;
 
   const [searchText, setSearchText] = useState("");
   const [events, setEvents] = useState<Event[]>([]);
@@ -40,17 +41,37 @@ export default function EventsScreen() {
       try {
         const resp = await fetch("http://10.5.176.13:5000/api/events/");
         const data = await resp.json();
-        const mapped = data.map((e: any) => ({
-          ...e,
-          id: e.id ?? `event-${Math.random().toString(36).substr(2, 9)}`,
-          image: require("../../assets/images/human.png"),
-        }));
-        const unique = mapped.filter(
+  
+        const eventImages: Record<string, any> = {
+          'sigma chi - delta iota tabling event (derby days 2025)': require('../../assets/images/derby_days.png'),
+          'usg spring 2025 debate and townhall': require('../../assets/images/usg_election.png'),
+          'munch week all stars': require('../../assets/images/munch_week.png'),
+          'earth day concert featuring gaeya': require('../../assets/images/gaeya.png'),
+          'senior week 2025': require('../../assets/images/senior_week.png'),
+          'intro to cad': require('../../assets/images/intro_CAD.png'),
+          'laisa movie night': require('../../assets/images/laisa_movie.png'),
+          'fellowships 101: professional development workshop for staff & faculty': require('../../assets/images/fellowships.png'),
+          'sewing workshop: making lanyards & keychains': require('../../assets/images/sewing.png'),
+        };
+  
+        const transformed = data.map((event: Event) => {
+          const cleanTitle = event.title.trim().toLowerCase();
+          const matchedImage = eventImages[cleanTitle];
+  
+          return {
+            ...event,
+            id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
+            image: matchedImage || require('../../assets/images/human.png'),
+          };
+        });
+  
+        const uniqueEvents = transformed.filter(
           (e, i, arr) => i === arr.findIndex((x) => x.id === e.id)
         );
-        setEvents(unique);
+  
+        setEvents(uniqueEvents);
       } catch (err) {
-        console.error(err);
+        console.error('Fetch events error:', err);
       }
     })();
   }, []);
@@ -78,7 +99,11 @@ export default function EventsScreen() {
     >
       <Image
         source={item.image}
-        style={[styles.eventImage, { aspectRatio: 1.5 }]}
+        style={{
+          width: '100%',
+          height: 180,
+          borderRadius: 10,
+        }}
         resizeMode="cover"
       />
       <Text style={[styles.eventTitle, { color: textColor }]} numberOfLines={2}>
@@ -92,11 +117,16 @@ export default function EventsScreen() {
       item.description.length > 100
         ? item.description.slice(0, 100) + "…"
         : item.description;
+
     return (
       <View style={[styles.card, { borderColor }]}>
         <Image
           source={item.image}
-          style={[styles.eventImage, { aspectRatio: 16 / 9 }]}
+          style={{
+            width: '100%',
+            height: 150,
+            borderRadius: 10,
+          }}
           resizeMode="cover"
         />
         <Text style={[styles.eventTitle, { color: textColor }]} numberOfLines={2}>
@@ -115,48 +145,46 @@ export default function EventsScreen() {
     );
   };
 
+  // 🚀 RETURN your UI here:
   return (
-    <ScrollView
-      style={styles.container}
-      lightColor={Colors.light.background}
-      darkColor={Colors.dark.background}
-    >
-      <TextInput
-        placeholder="Search events..."
-        placeholderTextColor={placeholderColor}
-        value={searchText}
-        onChangeText={setSearchText}
-        style={[
-          styles.searchBar,
-          { borderColor, color: textColor, borderWidth: 1 },
-        ]}
-      />
+    <SafeAreaView style={{ flex: 1, backgroundColor }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+        <View style={styles.container}>
+          <TextInput
+            placeholder="Search events..."
+            placeholderTextColor={placeholderColor}
+            style={[styles.searchBar, { color: textColor, borderColor }]}
+            value={searchText}
+            onChangeText={setSearchText}
+          />
 
-      <Text style={styles.sectionTitle}>Upcoming Events</Text>
-      <FlatList
-        data={filtered}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.horizontalList}
-        keyExtractor={(i) => i.id}
-        renderItem={renderHorizontal}
-        decelerationRate="fast"
-        snapToInterval={H_CARD_WIDTH + H_CARD_MARGIN}
-        snapToAlignment="start"
-      />
+          <Text style={[styles.sectionTitle, { color: textColor }]}>
+            🎵 Playlist Events
+          </Text>
 
-      <Text style={styles.sectionTitle}>All Events</Text>
-      <FlatList
-        data={filtered}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        keyExtractor={(i) => i.id}
-        renderItem={renderVertical}
-        showsVerticalScrollIndicator={false}
-        // ensure it fills and scrolls properly
-        ListFooterComponent={<View style={{ height: 50 }} />}
-      />
-    </ScrollView>
+          <FlatList
+            data={filtered.slice(0, 5)} // Show first 5 as playlist
+            renderItem={renderHorizontal}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingLeft: 10, paddingRight: 10 }}
+          />
+
+          <Text style={[styles.sectionTitle, { color: textColor, marginTop: 20 }]}>
+            📅 Upcoming Events
+          </Text>
+
+          <FlatList
+            data={filtered.slice(5)} // Rest of the events
+            renderItem={renderVertical}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false} // inside ScrollView
+            contentContainerStyle={{ paddingTop: 10 }}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -173,25 +201,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 16,
     backgroundColor: "transparent",
-  } as ViewStyle,
+    borderWidth: 1,
+  },
   sectionTitle: {
     fontFamily: "Poppins",
     fontSize: 18,
     fontWeight: "600",
     marginVertical: 8,
-  } as ViewStyle,
+  },
   horizontalList: {
     paddingBottom: 12,
-  } as ViewStyle,
+  },
   horizontalCard: {
     alignItems: "center",
-  } as ViewStyle,
+  },
   list: {
     flex: 1,
-  } as ViewStyle,
+  },
   listContent: {
     paddingBottom: 16,
-  } as ViewStyle,
+  },
   card: {
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 10,
@@ -199,11 +228,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     alignItems: "center",
-  } as ViewStyle,
-  eventImage: {
-    width: "100%",
-    borderRadius: 8,
-    marginBottom: 8,
   },
   eventTitle: {
     fontFamily: "Poppins",
@@ -211,15 +235,15 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 6,
     textAlign: "center",
-  } as ViewStyle,
+  },
   eventDescription: {
     fontFamily: "Poppins",
     fontSize: 14,
     marginBottom: 6,
     textAlign: "center",
-  } as ViewStyle,
+  },
   eventDetails: {
     fontFamily: "Poppins",
     fontSize: 13,
-  } as ViewStyle,
+  },
 });
