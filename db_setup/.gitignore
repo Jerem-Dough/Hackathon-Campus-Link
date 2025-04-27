@@ -1,0 +1,21 @@
+# NodeJS CLI ignores
+NodeJS_CLI/node_modules/
+NodeJS_CLI/.vscode/
+NodeJS_CLI/.pytest_cache/
+
+# Python / Flask ignores
+venv/
+.vscode/
+.pytest_cache/
+__pycache__/
+
+# PostgreSQL Docker database files
+data/
+data/*
+
+# Pipenv
+Pipfile
+Pipfile.lock
+.venv
+.env
+.envrc
