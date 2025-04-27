@@ -27,11 +27,44 @@ export default function EventsScreen() {
       try {
         const response = await fetch("http://10.5.176.13:5000/api/events/");
         const data = await response.json();
-        const transformed = data.map((event: Event) => ({
-          ...event,
-          id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
-          image: require("../../assets/images/human.png"),
-        }));
+        const transformed = data.map((event: Event) => {
+          let eventImage = require('../../assets/images/human.png'); 
+          switch (event.title.toLowerCase()) {
+            case 'sigma chi - delta iota tabling event (derby days 2025)':
+              eventImage = require('../../assets/images/derby_days.png');
+              break;
+            case 'usg spring 2025 debate and townhall ':
+              eventImage = require('../../assets/images/usg_election.png');
+              break;
+            case 'munch week all stars':
+              eventImage = require('../../assets/images/munch_week.png');
+              break;
+            case 'earth day concert featuring gaeya':
+              eventImage = require('../../assets/images/gaeya.png');
+              break;
+            case 'senior week 2025':
+                eventImage = require('../../assets/images/senior_week.png');
+                break;
+            case 'intro to cad':
+                eventImage = require('../../assets/images/intro_CAD.png');
+                break;
+            case 'laisa movie night':
+              eventImage = require('../../assets/images/laisa_movie.png');
+              break;
+            case 'fellowships 101: professional development workshop for staff & faculty':
+                eventImage = require('../../assets/images/fellowships.png');
+                break;
+            case 'sewing workshop: making lanyards & keychains':
+                eventImage = require('../../assets/images/sewing.png');
+                break;
+          }
+        
+          return {
+            ...event,
+            id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
+            image: eventImage,
+          };
+        });
         const unique = transformed.filter(
           (e, i, arr) => i === arr.findIndex((x) => x.id === e.id)
         );
