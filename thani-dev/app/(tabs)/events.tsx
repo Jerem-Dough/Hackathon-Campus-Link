@@ -46,7 +46,7 @@ const dummyEvents: Event[] = [
 ];
 
 export default function EventsScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() || "light"; // Fallback to "light" if null or undefined
   const [searchText, setSearchText] = useState("");
 
   const filteredEvents = useMemo(
@@ -71,7 +71,7 @@ export default function EventsScreen() {
       <Text
         style={[
           styles.eventDescription,
-          { color: Colors[colorScheme].tabIconDefault },
+          { color: Colors[colorScheme]?.tabIconDefault || "#000" }, // Fallback to default color
         ]}
       >
         {item.description}
