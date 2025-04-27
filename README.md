@@ -14,3 +14,11 @@ Thani (pronounced Than - eye) is a mobile application that connects students acr
 * Firebase
 * Docker
 * SQL
+
+## Contributers
+Rachel Reyes
+Abenezer 
+Alisha Pravasi
+Jeremy
+Dillion
+Joe
