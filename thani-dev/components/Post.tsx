@@ -32,13 +32,13 @@ export default function Post({ author, content, timestamp, image }: PostProps) {
           <AntDesign
             name={isLiked ? "heart" : "hearto"}
             size={20}
-            color={isLiked ? "#ff4444" : "#fff"}
+            color={isLiked ? "red" : "#000"}
           />
           <Text style={styles.actionText}>Like</Text>
         </Pressable>
 
         <Pressable style={styles.actionButton}>
-          <FontAwesome5 name="comment" size={20} color="#fff" />
+          <FontAwesome5 name="comment" size={20} color="#000" />
           <Text style={styles.actionText}>Comment</Text>
         </Pressable>
 
@@ -49,7 +49,7 @@ export default function Post({ author, content, timestamp, image }: PostProps) {
           <AntDesign
             name={isPinned ? "pushpin" : "pushpino"}
             size={20}
-            color={isPinned ? "#4488ff" : "#fff"}
+            color="#000"
           />
           <Text style={styles.actionText}>Pin</Text>
         </Pressable>
@@ -62,9 +62,9 @@ const styles = StyleSheet.create({
   postContainer: {
     marginBottom: 16,
     padding: 16,
-    backgroundColor: "#000",
+    backgroundColor: "#fff",
     borderBottomWidth: 0.5,
-    borderBottomColor: "#333", // subtle grey line
+    borderBottomColor: "#333",
   },
   postHeader: {
     flexDirection: "row",
@@ -80,16 +80,16 @@ const styles = StyleSheet.create({
   authorText: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#fff",
+    color: "#000",
   },
   contentText: {
     fontSize: 14,
-    color: "#fff",
+    color: "#000",
     lineHeight: 20,
   },
   timestamp: {
     fontSize: 12,
-    color: "#666",
+    color: "#000",
     marginTop: 8,
   },
   actionsContainer: {
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   actionText: {
-    color: "#fff",
+    color: "#000",
     marginLeft: 8,
     fontSize: 14,
   },

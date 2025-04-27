@@ -1,9 +1,11 @@
 import React from "react";
 import { StyleSheet, FlatList } from "react-native";
 import { View } from "./Themed";
+import { useColorScheme } from "@/components/useColorScheme";
+import Colors from "@/constants/Colors";
 import Post from "./Post";
 
-type Post = {
+type PostType = {
   id: string;
   author: string;
   content: string;
@@ -11,7 +13,7 @@ type Post = {
   image: any;
 };
 
-const dummyPosts: Post[] = [
+const dummyPosts: PostType[] = [
   {
     id: "1",
     author: "Alice",
@@ -134,8 +136,15 @@ const dummyPosts: Post[] = [
 ];
 
 export default function ForumPosts() {
+  const colorScheme = useColorScheme() || "light";
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: Colors[colorScheme].background },
+      ]}
+    >
       <FlatList
         data={dummyPosts}
         keyExtractor={(item) => item.id}
@@ -156,7 +165,6 @@ export default function ForumPosts() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
   },
   listContent: {
     padding: 16,
