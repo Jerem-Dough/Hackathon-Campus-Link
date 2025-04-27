@@ -73,3 +73,13 @@ CREATE INDEX IF NOT EXISTS idx_events_embedding
   ON events
   USING ivfflat (embedding vector_cosine_ops)
   WITH (lists = 100);
+
+
+CREATE TABLE IF NOT EXISTS comments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        comment TEXT,
+        post_id TEXT REFERENCES posts(id) ON DELETE CASCADE,
+        forum_id UUID REFERENCES forums(id) ON DELETE CASCADE,
+        user_uuid UUID REFERENCES users(uuid) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ DEFAULT now()
+);

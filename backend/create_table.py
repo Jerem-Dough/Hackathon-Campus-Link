@@ -114,6 +114,18 @@ def create_tables():
             WITH (lists = 100);
         """)
 
+        # Create comments table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS comments (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            comment TEXT,
+            post_id TEXT REFERENCES posts(id) ON DELETE CASCADE,
+            forum_id UUID REFERENCES forums(id) ON DELETE CASCADE,
+            user_uuid UUID REFERENCES users(uuid) ON DELETE SET NULL,
+            created_at TIMESTAMPTZ DEFAULT now()
+            );
+        """)
+        
         conn.commit()
         print("All tables created successfully")
 

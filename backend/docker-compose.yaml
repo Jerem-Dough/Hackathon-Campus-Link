@@ -30,9 +30,9 @@ services:
       context: ./
       dockerfile: ./dockerfiles/Dockerfile.backend
     container_name: THANI_backend
-    depends_on:
-      db:
-        condition: service_healthy
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:TEMP123@db:5432/EXPOS_THANI_WEB
     ports:
@@ -40,46 +40,46 @@ services:
     networks:
       - shared_network
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: THANI_postdataQA_admin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@THANI.com
-      PGADMIN_DEFAULT_PASSWORD: password
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    ports:
-      - "5051:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - shared_network
+#   pgadmin:
+#     image: dpage/pgadmin4:latest
+#     container_name: THANI_postdataQA_admin
+#     restart: always
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: admin@THANI.com
+#       PGADMIN_DEFAULT_PASSWORD: password
+#       PGADMIN_CONFIG_SERVER_MODE: 'False'
+#     ports:
+#       - "5051:80"
+#     volumes:
+#       - pgadmin_data:/var/lib/pgadmin
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#     networks:
+#       - shared_network
 
-  cli:
-    build:
-      context: ./
-      dockerfile: ./NodeJS_CLI/Dockerfile.cli
-    container_name: THANI_cli
-    environment:
-      POSTGRES_HOST: db
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: TEMP123
-      POSTGRES_DB: EXPOS_THANI_WEB
-    ports:
-      - "5052:5050"
-    stdin_open: true
-    tty: true
-    networks:
-      - shared_network
+#   cli:
+#     build:
+#       context: ./
+#       dockerfile: ./NodeJS_CLI/Dockerfile.cli
+#     container_name: THANI_cli
+#     environment:
+#       POSTGRES_HOST: db
+#       POSTGRES_PORT: 5432
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: TEMP123
+#       POSTGRES_DB: EXPOS_THANI_WEB
+#     ports:
+#       - "5052:5050"
+#     stdin_open: true
+#     tty: true
+#     networks:
+#       - shared_network
 
-networks:
-  shared_network:
-    name: custom_network
+# networks:
+#   shared_network:
+#     name: custom_network
 
-volumes:
-  postgres_data:
-  pgadmin_data:
+# volumes:
+#   postgres_data:
+#   pgadmin_data:
