@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
+    fontFamily: 'Poppins',
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
@@ -130,19 +131,23 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   forumContent: {
+    fontFamily: 'Poppins',
     flex: 1,
     justifyContent: "center",
   },
   forumName: {
+    fontFamily: 'Poppins',
     fontSize: 18,
     fontWeight: "500",
     marginBottom: 4,
   },
   forumDescription: {
+    fontFamily: 'Poppins',
     fontSize: 14,
     marginBottom: 4,
   },
   lastActive: {
+    fontFamily: 'Poppins',
     fontSize: 12,
     color: "#666",
   },
@@ -151,6 +156,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   modalHeader: {
+    fontFamily: 'Poppins',
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -159,16 +165,18 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
   },
   modalTitle: {
+    fontFamily: 'Poppins',
     fontSize: 24,
     fontWeight: "bold",
   },
   closeButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#38b6ff",
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 8,
   },
   closeButtonText: {
+    fontFamily: 'Poppins',
     color: "white",
     fontSize: 14,
     fontWeight: "600",

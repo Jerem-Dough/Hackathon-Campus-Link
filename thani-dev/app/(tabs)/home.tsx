@@ -50,7 +50,7 @@ export default function HomeScreen() {
       darkColor={Colors.dark.background}
     >
       {/* Title Section */}
-      <Text style={styles.title}>Welcome to Campus Connect</Text>
+      <Text style={styles.title}>Welcome to Thani</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
       <Text style={styles.subtitle}>Explore events, forums, maps, and more!</Text>
 
@@ -89,12 +89,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
+    fontFamily: 'Poppins',
     fontSize: 26,
     fontWeight: 'bold',
     marginTop: 50,
     textAlign: 'center',
   },
   subtitle: {
+    fontFamily: 'Poppins',
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
@@ -106,6 +108,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   sectionTitle: {
+    fontFamily: 'Poppins',
     fontSize: 20,
     fontWeight: '600',
     marginHorizontal: 15,
@@ -124,6 +127,7 @@ const styles = StyleSheet.create({
     height: 120,
   },
   eventTitle: {
+    fontFamily: 'Poppins',
     fontSize: 14,
     fontWeight: 'bold',
     padding: 10,
@@ -144,15 +148,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   postTitle: {
+    fontFamily: 'Poppins',
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
   },
   postDescription: {
+    fontFamily: 'Poppins',
     fontSize: 14,
     marginBottom: 5,
   },
   postDetails: {
+    fontFamily: 'Poppins',
     fontSize: 12,
     color: '#555',
   },

@@ -156,29 +156,35 @@ const styles = StyleSheet.create({
     avatarText: {
         fontSize: 28,
         fontWeight: 'bold',
+        fontFamily: 'Poppins',
     },
     name: {
         fontSize: 20,
         fontWeight: '600',
+        fontFamily: 'Poppins',
     },
     plan: {
         fontSize: 14,
         marginBottom: 24,
+        fontFamily: 'Poppins',
     },
     label: {
         alignSelf: 'flex-start',
+        fontFamily: 'Poppins',
         marginBottom: 6,
         fontSize: 14,
         fontWeight: '500',
     },
     input: {
         width: '100%',
+        fontFamily: 'Poppins',
         padding: 12,
         borderWidth: 1,
         borderRadius: 6,
         marginBottom: 16,
     },
     passwordWrapper: {
+        fontFamily: 'Poppins',
         width: '100%',
         position: 'relative',
     },
@@ -195,6 +201,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     saveText: {
+        fontFamily: 'Poppins',
         fontSize: 16,
         fontWeight: '600',
     },
