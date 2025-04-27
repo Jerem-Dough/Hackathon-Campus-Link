@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 from db import get_db_connection
 
 users_bp = Blueprint('users', __name__, url_prefix='/api/users')
+# this gets some selections, but they are not real vector searched recommendations
 
 @users_bp.route('/<user_uuid>/events/recommendations', methods=['GET'])
 def get_user_event_recommendations(user_uuid):

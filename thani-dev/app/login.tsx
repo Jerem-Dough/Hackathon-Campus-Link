@@ -40,16 +40,18 @@ export default function Login() {
   }
 
   return (
+    <View style={{ flex: 1 }}>
+      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
-        <TextInput 
-          style={styles.input}
+        <TextInput
+          value={email}
           onChangeText={setEmail}
-          placeholder='example@du.edu'
-          value={email}>
-        </TextInput>
-        <TextInput 
+          placeholder="Email"
           style={styles.input}
+        />
+        <TextInput
+          value={password}
           onChangeText={setPass}
           value={password}
           placeholder='password'>

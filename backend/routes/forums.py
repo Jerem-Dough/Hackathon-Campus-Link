@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from db import get_db_connection
-
+# from backend.routes.routers import events_bp
 forums_bp = Blueprint('forums', __name__, url_prefix='/api/forums')
 
 @forums_bp.route('/<forum_id>/posts', methods=['GET'])
