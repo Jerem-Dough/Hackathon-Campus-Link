@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql import func
+from threading import Thread
 
 # import your models & DB setup
 from models import (
@@ -20,9 +21,12 @@ from models import (
     Comment,
     Organization,
     User,
+    scopedSession,
 )
 
 load_dotenv()
+
+THREAD_NUMBER = 15
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
@@ -146,18 +150,15 @@ def create_dummy_data():
         session.close()
 
 
-def add_ics_to_db():
-    ICS_URL = "https://crimsonconnect.du.edu/ical/du/ical_du.ics"
-    resp = requests.get(ICS_URL)
-    cal = iCalendar.from_ical(resp.content)
-
-    session = SessionLocal()
+def threaded_add_ics(start, end, events):
+    session = scopedSession()
+    print(session)
     imported = 0
-
-    for comp in cal.walk():
-        if comp.name != "VEVENT":
+    for i in range(start, end):
+        if events[i].name != "VEVENT":
             continue
 
+        comp = events[i]
         # parse fields
         title = str(comp.get("summary")) if comp.get("summary") else "Untitled Event"
         dtstart = comp.get("dtstart").dt if comp.get("dtstart") else None
@@ -193,6 +194,32 @@ def add_ics_to_db():
     session.commit()
     session.close()
     print(f"✅ Imported {imported} new events from ICS.")
+
+
+def add_ics_to_db():
+    ICS_URL = "https://crimsonconnect.du.edu/ical/du/ical_du.ics"
+    resp = requests.get(ICS_URL)
+    cal = iCalendar.from_ical(resp.content)
+
+    events = cal.walk()
+    threads: list[Thread] = []
+    over_flow = len(events) % THREAD_NUMBER
+    chunk = len(events) // THREAD_NUMBER
+    for i in range(0, THREAD_NUMBER):
+        if i == THREAD_NUMBER - 1:
+            t = Thread(
+                target=threaded_add_ics,
+                args=(i * chunk, (i + 1) * chunk + over_flow, events),
+            )
+        else:
+            t = Thread(
+                target=threaded_add_ics, args=(i * chunk, (i + 1) * chunk, events)
+            )
+            threads.append(t)
+        t.start()
+
+    for t in threads:
+        t.join()
 
 
 def main():

@@ -21,6 +21,7 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from pgvector.sqlalchemy import Vector
+from sqlalchemy.orm import scoped_session
 
 import uuid
 
@@ -91,7 +92,7 @@ class Event(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         PGUUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    title: Mapped[str] = mapped_column(String(100), nullable=False)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
     date: Mapped[date] = mapped_column(Date, nullable=False, default=func.now())
     location: Mapped[str | None] = mapped_column(Text)
     image: Mapped[str | None] = mapped_column(
@@ -185,4 +186,6 @@ engine = create_engine(DATABASE_URL)
 Base.metadata.create_all(engine)
 
 # Session factory
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+SessionLocal = sessionmaker(bind=engine)
+
+scopedSession = scoped_session(SessionLocal)
