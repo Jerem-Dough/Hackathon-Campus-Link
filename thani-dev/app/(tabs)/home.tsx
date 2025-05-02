@@ -32,7 +32,6 @@ export default function EventsScreen() {
   const textColor = Colors[colorScheme].text;
   const borderColor = Colors[colorScheme].tabIconDefault;
   const backgroundColor = Colors[colorScheme].background;
-  const backgroundColor = Colors[colorScheme].background;
 
   const [searchText, setSearchText] = useState("");
   const [events, setEvents] = useState<Event[]>([]);
@@ -42,40 +41,40 @@ export default function EventsScreen() {
       try {
         const resp = await fetch("http://10.5.176.13:5000/api/events/");
         const data = await resp.json();
-  
+
         const eventImages: Record<string, any> = {
-          'sigma chi - delta iota tabling event (derby days 2025)': require('../../assets/images/derby_days.png'),
-          'usg spring 2025 debate and townhall': require('../../assets/images/usg_election.png'),
-          'munch week all stars': require('../../assets/images/munch_week.png'),
-          'earth day concert featuring gaeya': require('../../assets/images/gaeya.png'),
-          'senior week 2025': require('../../assets/images/senior_week.png'),
-          'intro to cad': require('../../assets/images/intro_CAD.png'),
-          'laisa movie night': require('../../assets/images/laisa_movie.png'),
-          'fellowships 101: professional development workshop for staff & faculty': require('../../assets/images/fellowships.png'),
-          'sewing workshop: making lanyards & keychains': require('../../assets/images/sewing.png'),
+          "sigma chi - delta iota tabling event (derby days 2025)": require("../../assets/images/derby_days.png"),
+          "usg spring 2025 debate and townhall": require("../../assets/images/usg_election.png"),
+          "munch week all stars": require("../../assets/images/munch_week.png"),
+          "earth day concert featuring gaeya": require("../../assets/images/gaeya.png"),
+          "senior week 2025": require("../../assets/images/senior_week.png"),
+          "intro to cad": require("../../assets/images/intro_CAD.png"),
+          "laisa movie night": require("../../assets/images/laisa_movie.png"),
+          "fellowships 101: professional development workshop for staff & faculty": require("../../assets/images/fellowships.png"),
+          "sewing workshop: making lanyards & keychains": require("../../assets/images/sewing.png"),
         };
-  
+
         const transformed = data.map((event: Event) => {
           const cleanTitle = event.title.trim().toLowerCase();
           const matchedImage = eventImages[cleanTitle];
-  
+
           return {
             ...event,
             id: event.id || `event-${Math.random().toString(36).substr(2, 9)}`,
-            image: matchedImage || require('../../assets/images/human.png'),
+            image: matchedImage || require("../../assets/images/human.png"),
           };
         });
-  
+
         const uniqueEvents = transformed.filter(
           (e, i, arr) => i === arr.findIndex((x) => x.id === e.id)
         );
-  
+
         setEvents(uniqueEvents);
-  
+
         setEvents(uniqueEvents);
       } catch (err) {
-        console.error('Fetch events error:', err);
-        console.error('Fetch events error:', err);
+        console.error("Fetch events error:", err);
+        console.error("Fetch events error:", err);
       }
     })();
   }, []);
@@ -104,12 +103,12 @@ export default function EventsScreen() {
       <Image
         source={item.image}
         style={{
-          width: '100%',
+          width: "100%",
           height: 180,
           borderRadius: 10,
         }}
         style={{
-          width: '100%',
+          width: "100%",
           height: 180,
           borderRadius: 10,
         }}
@@ -127,24 +126,21 @@ export default function EventsScreen() {
         ? item.description.slice(0, 100) + "…"
         : item.description;
 
-
     return (
       <View style={[styles.card, { borderColor }]}>
         <Image
           source={item.image}
           style={{
-            width: '100%',
-            height: 150,
-            borderRadius: 10,
-          }}
-          style={{
-            width: '100%',
+            width: "100%",
             height: 150,
             borderRadius: 10,
           }}
           resizeMode="cover"
         />
-        <Text style={[styles.eventTitle, { color: textColor }]} numberOfLines={2}>
+        <Text
+          style={[styles.eventTitle, { color: textColor }]}
+          numberOfLines={2}
+        >
           {item.title}
         </Text>
         <Text
@@ -186,7 +182,9 @@ export default function EventsScreen() {
             contentContainerStyle={{ paddingLeft: 10, paddingRight: 10 }}
           />
 
-          <Text style={[styles.sectionTitle, { color: textColor, marginTop: 20 }]}>
+          <Text
+            style={[styles.sectionTitle, { color: textColor, marginTop: 20 }]}
+          >
             📅 Upcoming Events
           </Text>
 
@@ -224,10 +222,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginVertical: 8,
   },
-  },
   horizontalList: {
     paddingBottom: 12,
-  },
   },
   horizontalCard: {
     alignItems: "center",
@@ -262,6 +258,5 @@ const styles = StyleSheet.create({
   eventDetails: {
     fontFamily: "Poppins",
     fontSize: 13,
-  },
   },
 });

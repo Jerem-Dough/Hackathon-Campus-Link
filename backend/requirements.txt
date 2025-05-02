@@ -1,10 +1,8 @@
-Flask>=2.0
-psycopg2-binary>=2.9
-pgvector==0.4.1
-requests
-flask-cors>=3.0
-ics
-icalendar
+fastapi[standard]
+SQLAlchemy
+psycopg2-binary
+pgvector
 openai
 python-dotenv
-pgvector
+requests
+icalendar

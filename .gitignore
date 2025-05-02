@@ -23,6 +23,9 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+.venv/
+venv/
+
 
 # React Native specific
 .expo-shared/
