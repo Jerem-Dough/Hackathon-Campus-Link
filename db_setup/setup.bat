@@ -12,10 +12,9 @@ REM Step 3: Activate the virtual environment
 call venv\Scripts\activate
 
 REM Step 4: Install dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt  --quiet
 
 REM Step 5: Run the Python scripts
-python create_table.py
 
 python datapipeline.py
 

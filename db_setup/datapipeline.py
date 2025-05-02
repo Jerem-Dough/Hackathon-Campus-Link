@@ -1,130 +1,206 @@
+import os
+import random
 import requests
-
-# from db import get_db_connection
-from ics import Calendar
-import uuid
-from icalendar import Calendar
+from datetime import date
+from icalendar import Calendar as iCalendar
 from openai import OpenAI
 from dotenv import load_dotenv
-import psycopg2
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql import func
 
-DB_HOST = "localhost"
-DB_PORT = 5432
-DB_NAME = "mydatabase"
-DB_USER = "myuser"
-DB_PASSWORD = "mypassword"
+# import your models & DB setup
+from models import (
+    Base,
+    engine,
+    SessionLocal,
+    Event,
+    Forum,
+    Post,
+    Comment,
+    Organization,
+    User,
+)
+
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise RuntimeError("Missing OPENAI_API_KEY in environment")
+
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 
-def get_db_connection():
-    conn = psycopg2.connect(
-        host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD
-    )
-    return conn
+def create_embedding(text: str) -> list[float]:
+    resp = client.embeddings.create(input=text, model="text-embedding-3-small")
+    return resp.data[0].embedding
 
 
-api_key = "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"
-client = OpenAI(api_key=api_key)
+def init_db():
+    # ensure Postgres extensions
+    with engine.connect() as conn:
+        conn.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'))
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pgcrypto;"))
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+        conn.commit()
+    # create tables
+    Base.metadata.create_all(engine)
 
 
-def create_embedding(text) -> list[float]:
+def create_dummy_data():
+    session = SessionLocal()
+    try:
+        # — User —
+        alice = User(
+            name="Alice Smith",
+            email="alice@example.com",
+            interest="Tech, Music",
+            campus="University of Denver",
+            embedding=create_embedding("Alice Smith Tech Music University of Denver"),
+        )
+        bob = User(
+            name="Bob Johnson",
+            email="bob@example.com",
+            interest="Art, Sports",
+            campus="MSU Denver",
+            embedding=create_embedding("Bob Johnson Art Sports MSU Denver"),
+        )
+        session.add_all([alice, bob])
+        session.flush()  # populate their UUIDs
 
-    response = client.embeddings.create(input=text, model="text-embedding-3-small")
-    # print(response)
-    embedding = response.data[0].embedding
-    return embedding
+        # — Forum with members —
+        forum = Forum(
+            name="General Discussion",
+            description="Talk about anything here.",
+            image="https://example.com/forum.png",
+            user=[alice, bob],  # Changed from members to user to match model definition
+        )
+        session.add(forum)
+        session.flush()
+
+        # — Posts —
+        post1 = Post(
+            forum=forum,
+            author=alice,
+            content="Welcome to the forum!",
+            created_at=func.now(),  # Added created_at to match model requirements
+        )
+        post2 = Post(
+            forum=forum,
+            author=bob,
+            content="Glad to be here.",
+            created_at=func.now(),  # Added created_at to match model requirements
+        )
+        session.add_all([post1, post2])
+        session.flush()
+
+        # — Comments —
+        comment1 = Comment(
+            post=post1,
+            user=bob,
+            content="Thanks for the welcome!",  # Changed from comment to content to match model definition
+            created_at=func.now(),  # Added created_at to match model requirements
+        )
+        comment2 = Comment(
+            post=post2,
+            user=alice,
+            content="Enjoy your stay.",  # Changed from comment to content to match model definition
+            created_at=func.now(),  # Added created_at to match model requirements
+        )
+        session.add_all([comment1, comment2])
+
+        # — Dummy Event —
+        dummy_event = Event(
+            title="Dummy Conference",
+            date=date.today(),
+            location="Denver Tech Center",
+            image="https://example.com/event.png",
+            description="A test conference event.",
+            tags="conference,tech,2025",
+            embedding=create_embedding(
+                "Dummy Conference Denver Tech Center A test conference event. conference,tech,2025"
+            ),
+        )
+        session.add(dummy_event)
+
+        # — Dummy Organization —
+        org = Organization(
+            title="Tech Club",
+            campus="University of Denver",
+            image="https://example.com/org.png",
+            description="A club for tech enthusiasts.",
+            tags="tech,club,students",
+            members=[alice, bob],
+            embedding=create_embedding(
+                "Tech Club University of Denver A club for tech enthusiasts. tech,club,students"
+            ),
+        )
+        session.add(org)
+
+        session.commit()
+        print("✅ Dummy data inserted successfully.")
+    except SQLAlchemyError as e:
+        session.rollback()
+        print("❌ Error inserting dummy data:", e)
+    finally:
+        session.close()
 
 
 def add_ics_to_db():
-    url = "https://crimsonconnect.du.edu/ical/du/ical_du.ics"
-    response = requests.get(url)
-    cal = Calendar.from_ical(response.content)
+    ICS_URL = "https://crimsonconnect.du.edu/ical/du/ical_du.ics"
+    resp = requests.get(ICS_URL)
+    cal = iCalendar.from_ical(resp.content)
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    session = SessionLocal()
+    imported = 0
 
-    event_count = 0
-    print("\n=== Starting Event Import ===")
+    for comp in cal.walk():
+        if comp.name != "VEVENT":
+            continue
 
-    for component in cal.walk():
-        if component.name == "VEVENT":
-            # Extract fields safely
-            title = (
-                str(component.get("summary"))
-                if component.get("summary")
-                else "Untitled Event"
-            )
-            dtstart = component.get("dtstart").dt if component.get("dtstart") else None
-            location = "University of Denver"
-            description = (
-                str(component.get("description"))
-                if component.get("description")
-                else None
-            )
+        # parse fields
+        title = str(comp.get("summary")) if comp.get("summary") else "Untitled Event"
+        dtstart = comp.get("dtstart").dt if comp.get("dtstart") else None
+        if not dtstart:
+            continue
+        # normalize to date
+        event_date = dtstart.date() if hasattr(dtstart, "date") else dtstart
 
-            # Print event details before processing
-            print(f"\nProcessing Event #{event_count + 1}")
-            print(f"Title: {title}")
+        location = str(comp.get("location")) or "University of Denver"
+        description = str(comp.get("description")) if comp.get("description") else ""
 
-            try:
-                # Check if event with same title exists
-                check_query = "SELECT title FROM events WHERE title = %s;"
-                cursor.execute(check_query, (title,))
-                exists = cursor.fetchone()
+        # skip duplicates
+        if session.query(Event).filter_by(title=title).first():
+            print(f"⚠️ Event {title} already exsists")
+            continue
 
-                if exists:
-                    print(f"⚠ Event already exists: {title}")
-                    continue
+        # build embedding + record
+        text_to_embed = title + (f" {description}" if description else "")
+        embedding = create_embedding(text_to_embed)
+        new_event = Event(
+            title=title,
+            date=event_date,
+            location=location,
+            image="./assets/default_event.png",
+            description=description,
+            tags="",
+            embedding=embedding,
+        )
+        session.add(new_event)
+        print(f"✅ Added new Event {title} ")
+        imported += 1
 
-                # If event doesn't exist, proceed with insertion
-                image = "./assest/default_event.png"
-                embedding = (
-                    create_embedding(title + " " + description)
-                    if description
-                    else create_embedding(title)
-                )
-                embedding = str(embedding)
-                event_id = str(uuid.uuid4())
-                tags = []
-
-                insert_query = """
-                    INSERT INTO events (id, title, date, location, image, description, tags, embedding)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """
-                cursor.execute(
-                    insert_query,
-                    (
-                        event_id,
-                        title,
-                        dtstart,
-                        location,
-                        image,
-                        description,
-                        tags,
-                        embedding,
-                    ),
-                )
-                event_count += 1
-                print(f"✓ Successfully added event: {title}")
-
-            except Exception as e:
-                print(f"✗ Failed to add event: {title}")
-                print(f"Error: {str(e)}")
-
-    conn.commit()
-    print(f"\n=== Import Complete ===")
-    print(f"Total new events added: {event_count}")
-    cursor.close()
-    conn.close()
+    session.commit()
+    session.close()
+    print(f"✅ Imported {imported} new events from ICS.")
 
 
 def main():
-    try:
-        add_ics_to_db()
-        print("ICS data added to DB successfully.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    init_db()
+    create_dummy_data()
+    add_ics_to_db()
+    print("🎉 Data pipeline completed.")
 
 
 if __name__ == "__main__":
     main()
-    print("Data pipeline executed successfully.")
