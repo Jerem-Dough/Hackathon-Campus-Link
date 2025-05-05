@@ -37,7 +37,6 @@ CampusLink (formerly "Thani") is a mobile-first platform designed to connect col
 - Docker – Containerization and deployment  
 - Firebase – Authentication and real-time backend services  
 - SQL – Structured data storage  
-- Java – Additional backend utilities and tools  
 
 
 ## Local Deployment
