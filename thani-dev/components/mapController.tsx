@@ -13,7 +13,7 @@ export default function MapController() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const getPhotoUrl = (photoReference) => {
-    const apiKey = 'AIzaSyBuQZm9NDoMj1KJgRHiJaJGmfaWOvsGRAY';
+    const apiKey = 'API KEY';
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=${apiKey}`;
   };
   const knownTypes = [
