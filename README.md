@@ -33,7 +33,6 @@ CampusLink (formerly "Thani") is a mobile-first platform designed to connect col
 ## Tech Stack
 
 - React Native – Mobile interface and interaction  
-- Node.js – Backend and API integration  
 - Python (Flask) – Backend logic and data processing  
 - Docker – Containerization and deployment  
 - Firebase – Authentication and real-time backend services  
