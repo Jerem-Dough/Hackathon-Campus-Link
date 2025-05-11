@@ -43,7 +43,6 @@ CampusLink (formerly "Thani") is a mobile-first platform designed to connect col
 
 Make sure you have the following installed and configured:
 
-- Java (JDK 11 or higher)  
 - Python 3.x  
 - Node.js and npm  
 - Docker Desktop  
